@@ -1,7 +1,7 @@
 package com.example.telegramcharts;
 
 import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,10 +23,12 @@ public class MainActivity extends AppCompatActivity {
     public static final String X = "x";
     public static final String LINE = "line";
     MenuItem checkedMenuItem;
+    ChartView chartView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        chartView = findViewById(R.id.chart_view);
         JSONArray chartsJson = JSONUtils.loadJSONArrayFromAsset(getBaseContext());
         chartList = new ArrayList<>();
         if (chartsJson != null) {
