@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Chart {
     private String name;
-    private Line xLine;
+    private XLine xLine;
     private List<Line> yLines = new ArrayList<>();
 
     public String getName() {
@@ -24,11 +24,11 @@ public class Chart {
         this.yLines.add(yLine);
     }
 
-    public Line getXLine() {
+    public XLine getXLine() {
         return xLine;
     }
 
-    public void setXLine(Line xLine) {
+    public void setXLine(XLine xLine) {
         this.xLine = xLine;
     }
 

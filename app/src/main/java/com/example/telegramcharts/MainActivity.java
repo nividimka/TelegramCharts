@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.example.telegramcharts.data.Chart;
 import com.example.telegramcharts.data.Line;
+import com.example.telegramcharts.data.XLine;
 import com.example.telegramcharts.utils.JSONUtils;
 
 import org.json.JSONArray;
@@ -47,8 +48,8 @@ public class MainActivity extends AppCompatActivity {
                         String lineId = jsonLines.getString(0);
                         switch (typesJson.getString(lineId)){
                             case X:
-                                Line<Long> xLine = new Line<>();
-                                Long[] columns = new Long[jsonLines.length() - 1];
+                                XLine xLine = new XLine();
+                                long[] columns = new long[jsonLines.length() - 1];
                                 for(int k = 1;k < jsonLines.length();k++){
                                     columns[k - 1] = jsonLines.getLong(k);
                                 }
@@ -56,12 +57,22 @@ public class MainActivity extends AppCompatActivity {
                                 chart.setXLine(xLine);
                                 break;
                             case LINE:
-                                Line<Integer> yLine = new Line<>();
-                                Integer[] yColumns = new Integer[jsonLines.length() - 1];
+                                Line yLine = new Line();
+                                int[] yColumns = new int[jsonLines.length() - 1];
+                                int minY = jsonLines.getInt(1);
+                                int maxY = jsonLines.getInt(1);
                                 for(int k = 1;k < jsonLines.length();k++){
                                     yColumns[k - 1] = jsonLines.getInt(k);
+                                    if(jsonLines.getInt(k) < minY){
+                                        minY = jsonLines.getInt(k);
+                                    }
+                                    if(jsonLines.getInt(k) > maxY){
+                                        maxY = jsonLines.getInt(k);
+                                    }
                                 }
                                 yLine.setColumns(yColumns);
+                                yLine.setMaxY(maxY);
+                                yLine.setMinY(minY);
                                 yLine.setName(namesJson.getString(lineId));
                                 yLine.setColor(Color.parseColor(colorsJson.getString(lineId)));
                                 chart.addYLine(yLine);
@@ -98,7 +109,6 @@ public class MainActivity extends AppCompatActivity {
         item.setChecked(true);
         checkedMenuItem = item;
         selectChart(chartList.get(checkedMenuItem.getItemId()));
-        Toast.makeText(getBaseContext(), "clicked " + chartList.get(item.getItemId()).getName(), Toast.LENGTH_LONG).show();
         return super.onOptionsItemSelected(item);
     }
     public void selectChart(Chart chart){

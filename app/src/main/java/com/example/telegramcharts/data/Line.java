@@ -2,17 +2,19 @@ package com.example.telegramcharts.data;
 
 import android.graphics.Color;
 
-public class Line<T> {
-    T[] columns;
+public class Line {
+    int[] columns;
     String name;
     int color;
     boolean hidden;
+    int minY;
+    int maxY;
 
-    public T[] getColumns() {
+    public int[] getColumns() {
         return columns;
     }
 
-    public void setColumns(T[] columns) {
+    public void setColumns(int[] columns) {
         this.columns = columns;
     }
 
@@ -38,5 +40,21 @@ public class Line<T> {
 
     public void setHidden(boolean hidden) {
         this.hidden = hidden;
+    }
+
+    public int getMinY() {
+        return minY;
+    }
+
+    public void setMinY(int minY) {
+        this.minY = minY;
+    }
+
+    public int getMaxY() {
+        return maxY;
+    }
+
+    public void setMaxY(int maxY) {
+        this.maxY = maxY;
     }
 }
