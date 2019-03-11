@@ -1,4 +1,4 @@
-package com.example.telegramcharts;
+package com.example.telegramcharts.utils;
 
 import android.content.Context;
 
