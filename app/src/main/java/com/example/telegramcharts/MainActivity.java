@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
             if(i==0) {
                 menuItem.setChecked(true);
                 checkedMenuItem = menuItem;
+                selectChart(chartList.get(checkedMenuItem.getItemId()));
             }
         }
         return super.onCreateOptionsMenu(menu);
@@ -96,7 +97,11 @@ public class MainActivity extends AppCompatActivity {
         checkedMenuItem.setChecked(false);
         item.setChecked(true);
         checkedMenuItem = item;
+        selectChart(chartList.get(checkedMenuItem.getItemId()));
         Toast.makeText(getBaseContext(), "clicked " + chartList.get(item.getItemId()).getName(), Toast.LENGTH_LONG).show();
         return super.onOptionsItemSelected(item);
+    }
+    public void selectChart(Chart chart){
+        chartView.setChart(chart);
     }
 }

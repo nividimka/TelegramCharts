@@ -6,6 +6,7 @@ public class Line<T> {
     T[] columns;
     String name;
     int color;
+    boolean hidden;
 
     public T[] getColumns() {
         return columns;
@@ -29,5 +30,13 @@ public class Line<T> {
 
     public void setColor(int color) {
         this.color = color;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 }
