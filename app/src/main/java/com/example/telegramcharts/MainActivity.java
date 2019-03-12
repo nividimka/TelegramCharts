@@ -1,29 +1,28 @@
 package com.example.telegramcharts;
 
-import android.graphics.Color;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.example.telegramcharts.data.Chart;
-import com.example.telegramcharts.data.Line;
-import com.example.telegramcharts.data.XLine;
 import com.example.telegramcharts.utils.JSONUtils;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     List<Chart> chartList;
-    public static final String X = "x";
-    public static final String LINE = "line";
     MenuItem checkedMenuItem;
+    MenuItem modeMenuItem;
+    Mode mode;
     ChartView chartView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,66 +30,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         chartView = findViewById(R.id.chart_view);
         JSONArray chartsJson = JSONUtils.loadJSONArrayFromAsset(getBaseContext());
-        chartList = new ArrayList<>();
-        if (chartsJson != null) {
-            try {
-                for (int i = 0; i < chartsJson.length(); i++) {
-                    JSONObject chartJson = chartsJson.getJSONObject(i);
-
-                    Chart chart = new Chart();
-                    chart.setName("Chart" + (i + 1));
-                    JSONArray columnsJson = chartJson.getJSONArray("columns");
-                    JSONObject typesJson = chartJson.getJSONObject("types");
-                    JSONObject colorsJson = chartJson.getJSONObject("colors");
-                    JSONObject namesJson = chartJson.getJSONObject("names");
-                    for(int j = 0; j < columnsJson.length();j++){
-                        JSONArray jsonLines = columnsJson.getJSONArray(j);
-                        String lineId = jsonLines.getString(0);
-                        switch (typesJson.getString(lineId)){
-                            case X:
-                                XLine xLine = new XLine();
-                                long[] columns = new long[jsonLines.length() - 1];
-                                for(int k = 1;k < jsonLines.length();k++){
-                                    columns[k - 1] = jsonLines.getLong(k);
-                                }
-                                xLine.setColumns(columns);
-                                chart.setXLine(xLine);
-                                break;
-                            case LINE:
-                                Line yLine = new Line();
-                                int[] yColumns = new int[jsonLines.length() - 1];
-                                int minY = jsonLines.getInt(1);
-                                int maxY = jsonLines.getInt(1);
-                                for(int k = 1;k < jsonLines.length();k++){
-                                    yColumns[k - 1] = jsonLines.getInt(k);
-                                    if(jsonLines.getInt(k) < minY){
-                                        minY = jsonLines.getInt(k);
-                                    }
-                                    if(jsonLines.getInt(k) > maxY){
-                                        maxY = jsonLines.getInt(k);
-                                    }
-                                }
-                                yLine.setColumns(yColumns);
-                                yLine.setMaxY(maxY);
-                                yLine.setMinY(minY);
-                                yLine.setName(namesJson.getString(lineId));
-                                yLine.setColor(Color.parseColor(colorsJson.getString(lineId)));
-                                chart.addYLine(yLine);
-                                break;
-                        }
-                    }
-                    chartList.add(chart);
-                }
-                invalidateOptionsMenu();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
+        chartList = JSONUtils.parseCharts(chartsJson);
+        invalidateOptionsMenu();
+        mode = Mode.DAY_MODE;
+        updateModeUi();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.clear();
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        modeMenuItem = menu.findItem(R.id.mode);
+        updateModeState();
         for (int i = 0; i < chartList.size(); i++) {
             Chart chart = chartList.get(i);
             MenuItem menuItem = menu.add(0, i, Menu.NONE, chart.getName()).setCheckable(true);
@@ -103,14 +53,57 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    private void updateModeState() {
+        if(mode.equals(Mode.DAY_MODE)){
+            modeMenuItem.setIcon(R.drawable.ic_moon_white);
+        }else{
+            modeMenuItem.setIcon(R.drawable.ic_moon_white);
+        }
+    }
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        checkedMenuItem.setChecked(false);
-        item.setChecked(true);
-        checkedMenuItem = item;
-        selectChart(chartList.get(checkedMenuItem.getItemId()));
+        if(item.getItemId()!=modeMenuItem.getItemId()) {
+            checkedMenuItem.setChecked(false);
+            item.setChecked(true);
+            checkedMenuItem = item;
+            selectChart(chartList.get(checkedMenuItem.getItemId()));
+        }else{
+            if (mode.equals(Mode.DAY_MODE)) {
+                mode = Mode.NIGHT_MODE;
+            } else {
+                mode = Mode.DAY_MODE;
+            }
+            updateModeState();
+            updateModeUi();
+        }
         return super.onOptionsItemSelected(item);
     }
+
+    private void updateModeUi() {
+        updateToolbar();
+        updateStatusbar();
+        updateBackgroundColor();
+        chartView.updateMode(mode);
+    }
+
+    private void updateBackgroundColor() {
+        getWindow().getDecorView().setBackgroundColor(mode.backgroundColor);
+    }
+
+    private void updateToolbar(){
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(mode.toolbarColor));
+    }
+    private void updateStatusbar(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(mode.statusbarColor);
+        }
+    }
+
     public void selectChart(Chart chart){
         chartView.setChart(chart);
     }

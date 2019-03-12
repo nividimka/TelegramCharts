@@ -22,6 +22,7 @@ public class ChartView extends LinearLayout {
     Chart chart;
     ViewGroup checkboxesView;
     FullChartView fullChartView;
+    Mode mode;
 
     public ChartView(Context context) {
         super(context);
@@ -42,15 +43,35 @@ public class ChartView extends LinearLayout {
         inflate(getContext(), R.layout.chart_view, this);
         checkboxesView = findViewById(R.id.checkboxes_view);
         fullChartView = findViewById(R.id.full_chart_view);
-        setBackgroundColor(Color.parseColor("#FDFDFE"));
+        mode = Mode.DAY_MODE;
+        updateBackgroundColor();
         initCheckboxes();
         initFullChart();
+    }
+    public void updateMode(Mode mode){
+        this.mode = mode;
+        updateBackgroundColor();
+        initCheckboxes();
+        fullChartView.setMode(mode);
+        invalidate();
+    }
+
+    private void updateBackgroundColor(){
+        setBackgroundColor(mode.viewBackgroundColor);
     }
 
     private void initFullChart() {
         if(chart!=null) {
             fullChartView.setLines(chart.getYLines());
         }
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
     }
 
     public void initCheckboxes(){
@@ -75,7 +96,7 @@ public class ChartView extends LinearLayout {
                 CompoundButtonCompat.setButtonTintList(checkbox, ColorStateList.valueOf(line.getColor()));
                 checkboxesView.addView(checkbox);
                 View separator = new View(getContext());
-                separator.setBackgroundColor(Color.parseColor("#DFDFDF"));
+                separator.setBackgroundColor(mode.separatorColor);
                 LayoutParams separatorParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 3);
                 separatorParams.setMargins(150,0,40,0);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -95,8 +116,5 @@ public class ChartView extends LinearLayout {
         initFullChart();
     }
 
-    class Config{
-        int dividerColor;
-        int backgroundColor;
-    }
+
 }

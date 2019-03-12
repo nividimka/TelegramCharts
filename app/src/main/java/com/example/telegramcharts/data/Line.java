@@ -3,6 +3,8 @@ package com.example.telegramcharts.data;
 import android.graphics.Color;
 
 public class Line {
+    public static final String ID = "line";
+
     int[] columns;
     String name;
     int color;

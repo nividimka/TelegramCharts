@@ -22,6 +22,7 @@ public class FullChartView extends View {
     List<Line> lines;
     List<Paint> paints;
     Paint blurPaint;
+    Mode mode;
     float increasedLeft = 0;
     float increasedRight = 150;
     private GestureDetectorCompat gestureDetector;
@@ -42,9 +43,10 @@ public class FullChartView extends View {
     }
 
     public void init(){
+        mode = Mode.DAY_MODE;
         blurPaint = new Paint();
         gestureDetector = new GestureDetectorCompat(getContext(), gestureListener);
-        blurPaint.setColor(Color.parseColor("#BBF4F7F8"));
+        blurPaint.setColor(mode.blurColor);
     }
 
     @Override
@@ -76,6 +78,12 @@ public class FullChartView extends View {
     }
 
     boolean increaceCenterClicked = false;
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+        blurPaint.setColor(mode.blurColor);
+        invalidate();
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
