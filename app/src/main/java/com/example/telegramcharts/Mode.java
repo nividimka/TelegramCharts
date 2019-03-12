@@ -60,7 +60,7 @@ class Mode {
             Color.parseColor("#1A242E"),
             Color.parseColor("#1D2733"),
             Color.parseColor("#C117222D"),
-            Color.parseColor("#C117222D")
+            Color.parseColor("#3462ACDF")
             );
 
     public static Mode DAY_MODE = new Mode(
@@ -70,7 +70,7 @@ class Mode {
             Color.parseColor("#426381"),
             Color.parseColor("#FDFDFE"),
             Color.parseColor("#BAF0F4F6"),
-            Color.parseColor("#BAF0F4F6")
+            Color.parseColor("#324B80B4")
             );
 
 }

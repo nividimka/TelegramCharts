@@ -22,9 +22,12 @@ public class FullChartView extends View {
     List<Line> lines;
     List<Paint> paints;
     Paint blurPaint;
+    Paint framePaint;
     Mode mode;
     float increasedLeft = 0;
     float increasedRight = 150;
+    float frameHeight = 5;
+    float frameWidth = 10;
     private GestureDetectorCompat gestureDetector;
 
     public FullChartView(Context context) {
@@ -44,9 +47,11 @@ public class FullChartView extends View {
 
     public void init(){
         mode = Mode.DAY_MODE;
-        blurPaint = new Paint();
         gestureDetector = new GestureDetectorCompat(getContext(), gestureListener);
+        blurPaint = new Paint();
         blurPaint.setColor(mode.blurColor);
+        framePaint = new Paint();
+        framePaint.setColor(mode.frameColor);
     }
 
     @Override
@@ -73,6 +78,10 @@ public class FullChartView extends View {
                 }
             }
             canvas.drawRect(0,0,increasedLeft,getHeight(),blurPaint);
+            canvas.drawRect(increasedLeft,0,increasedLeft+frameWidth,getHeight(),framePaint);
+            canvas.drawRect(increasedRight-frameWidth,0,increasedRight,getHeight(),framePaint);
+            canvas.drawRect(increasedLeft+frameWidth,0,increasedRight-frameWidth,frameHeight,framePaint);
+            canvas.drawRect(increasedLeft+frameWidth,getHeight()-frameHeight,increasedRight-frameWidth,getHeight(),framePaint);
             canvas.drawRect(increasedRight,0,getWidth(),getHeight(),blurPaint);
         }
     }
@@ -82,6 +91,7 @@ public class FullChartView extends View {
     public void setMode(Mode mode) {
         this.mode = mode;
         blurPaint.setColor(mode.blurColor);
+        framePaint.setColor(mode.frameColor);
         invalidate();
     }
 
