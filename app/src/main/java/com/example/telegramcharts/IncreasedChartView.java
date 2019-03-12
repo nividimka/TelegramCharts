@@ -54,8 +54,8 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
                     for (int i = leftIndex; i < rightIndex-1; i++) {
                         int y0 = line.getColumns()[i];
                         int y1 = line.getColumns()[i + 1];
-                        int y0Scaled = (y0 - maxY) * height / (minY - maxY);
-                        int y1Scaled = (y1 - maxY) * height / (minY - maxY);
+                        int y0Scaled = (int) (((y0 - maxY)*1.0/ (minY - maxY)) * height);
+                        int y1Scaled = (int) (((y1 - maxY)*1.0/(minY - maxY)) * height);
                         int x0 = width * (i-leftIndex) / (rightIndex-leftIndex);
                         int x1 = width * (i + 1-leftIndex) / (rightIndex-leftIndex);
                         canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paints.get(k));
