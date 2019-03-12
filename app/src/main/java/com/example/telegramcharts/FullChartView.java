@@ -29,6 +29,7 @@ public class FullChartView extends View {
     float frameHeight = 5;
     float frameWidth = 10;
     private GestureDetectorCompat gestureDetector;
+    private OnRangeChangeListener onRangeChangeListener;
 
     public FullChartView(Context context) {
         super(context);
@@ -45,7 +46,7 @@ public class FullChartView extends View {
         init();
     }
 
-    public void init(){
+    public void init() {
         mode = Mode.DAY_MODE;
         gestureDetector = new GestureDetectorCompat(getContext(), gestureListener);
         blurPaint = new Paint();
@@ -57,14 +58,14 @@ public class FullChartView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if(lines!=null){
+        if (lines != null) {
             int width = getWidth();
             int height = getHeight();
             int maxY = getMaxY(lines);
             int minY = getMinY(lines);
-            for(int k =0; k < lines.size();k++) {
+            for (int k = 0; k < lines.size(); k++) {
                 Line line = lines.get(k);
-                if(!line.isHidden()) {
+                if (!line.isHidden()) {
                     int count = line.getColumns().length;
                     for (int i = 0; i < count - 1; i++) {
                         int y0 = line.getColumns()[i];
@@ -77,12 +78,12 @@ public class FullChartView extends View {
                     }
                 }
             }
-            canvas.drawRect(0,0,increasedLeft,getHeight(),blurPaint);
-            canvas.drawRect(increasedLeft,0,increasedLeft+frameWidth,getHeight(),framePaint);
-            canvas.drawRect(increasedRight-frameWidth,0,increasedRight,getHeight(),framePaint);
-            canvas.drawRect(increasedLeft+frameWidth,0,increasedRight-frameWidth,frameHeight,framePaint);
-            canvas.drawRect(increasedLeft+frameWidth,getHeight()-frameHeight,increasedRight-frameWidth,getHeight(),framePaint);
-            canvas.drawRect(increasedRight,0,getWidth(),getHeight(),blurPaint);
+            canvas.drawRect(0, 0, increasedLeft, getHeight(), blurPaint);
+            canvas.drawRect(increasedLeft, 0, increasedLeft + frameWidth, getHeight(), framePaint);
+            canvas.drawRect(increasedRight - frameWidth, 0, increasedRight, getHeight(), framePaint);
+            canvas.drawRect(increasedLeft + frameWidth, 0, increasedRight - frameWidth, frameHeight, framePaint);
+            canvas.drawRect(increasedLeft + frameWidth, getHeight() - frameHeight, increasedRight - frameWidth, getHeight(), framePaint);
+            canvas.drawRect(increasedRight, 0, getWidth(), getHeight(), blurPaint);
         }
     }
 
@@ -98,9 +99,9 @@ public class FullChartView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getAction();
-        switch (action){
+        switch (action) {
             case MotionEvent.ACTION_DOWN:
-                if(event.getX()<increasedRight && event.getX()>increasedLeft){
+                if (event.getX() < increasedRight && event.getX() > increasedLeft) {
                     increaceCenterClicked = true;
                 }
                 break;
@@ -115,29 +116,30 @@ public class FullChartView extends View {
     public void setLines(List<Line> lines) {
         this.lines = lines;
         paints = new ArrayList<>();
-        for(Line line : lines){
+        for (Line line : lines) {
             Paint paint = new Paint();
             paint.setColor(line.getColor());
             paint.setStrokeWidth(4);
             paints.add(paint);
         }
+        updateIncreasedView();
         invalidate();
     }
 
-    public int getMaxY(List<Line> lines){
+    public static int getMaxY(List<Line> lines) {
         int maxY = lines.get(0).getMaxY();
-        for(Line line:lines){
-            if(maxY < line.getMaxY()){
+        for (Line line : lines) {
+            if (maxY < line.getMaxY()) {
                 maxY = line.getMaxY();
             }
         }
         return maxY;
     }
 
-    public int getMinY(List<Line> lines){
+    public static int getMinY(List<Line> lines) {
         int minY = lines.get(0).getMinY();
-        for(Line line:lines){
-            if(minY > line.getMinY()){
+        for (Line line : lines) {
+            if (minY > line.getMinY()) {
                 minY = line.getMinY();
             }
         }
@@ -163,22 +165,24 @@ public class FullChartView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            Log.e("onScroll", "onScroll");
-            if(increaceCenterClicked) {
+            if (increaceCenterClicked) {
                 float delta = increasedRight - increasedLeft;
-                float newLeft = e2.getX()-delta/2;
-                float newRight = e2.getX() + delta/2;
-                if(newLeft >=0 && newRight <=getWidth()) {
+                float newLeft = e2.getX() - delta / 2;
+                float newRight = e2.getX() + delta / 2;
+                if (newLeft >= 0 && newRight <= getWidth() && (increasedLeft != newLeft || increasedRight != newRight)) {
                     increasedLeft = newLeft;
                     increasedRight = newRight;
+                    updateIncreasedView();
                 }
-                if(newLeft<0){
+                if (newLeft < 0 && increasedLeft != 0) {
                     increasedLeft = 0;
                     increasedRight = delta;
+                    updateIncreasedView();
                 }
-                if(newRight > getWidth()){
+                if (newRight > getWidth() && increasedRight != getWidth()) {
                     increasedRight = getWidth();
-                    increasedLeft = getWidth()-delta;
+                    increasedLeft = getWidth() - delta;
+                    updateIncreasedView();
                 }
                 invalidate();
             }
@@ -195,4 +199,47 @@ public class FullChartView extends View {
             return false;
         }
     };
+
+    private void updateIncreasedView() {
+        int pointCount = lines.get(0).getColumns().length;
+        int leftIndex = getNearestLeftIndexPoint(getWidth(), increasedLeft, pointCount);
+        int rightIndex = getNearestRightIndexPoint(getWidth(), increasedRight, pointCount);
+        float percentToRightIndex = percentToRightIndex(rightIndex, getWidth(), pointCount);
+        float percentToLeftIndex = percentToLeftIndex(leftIndex, getWidth(), pointCount);
+        if (onRangeChangeListener != null) {
+            onRangeChangeListener.onRangeChange(leftIndex, rightIndex, percentToLeftIndex, percentToRightIndex);
+        }
+    }
+
+    public OnRangeChangeListener getOnRangeChangeListener() {
+        return onRangeChangeListener;
+    }
+
+    public void setOnRangeChangeListener(OnRangeChangeListener onRangeChangeListener) {
+        this.onRangeChangeListener = onRangeChangeListener;
+    }
+
+    interface OnRangeChangeListener {
+        void onRangeChange(int leftIndex, int rightIndex, float percentToLeftIndex, float percentToRightIndex);
+    }
+
+    private int getNearestLeftIndexPoint(int width, float leftFrame, int count) {
+        float i = leftFrame * count / width;
+        return (int) Math.floor(i);
+    }
+
+    private int getNearestRightIndexPoint(int width, float rightFrame, int count) {
+        float i = rightFrame * count / width;
+        return (int) Math.ceil(i);
+    }
+
+    private float percentToRightIndex(int rightIndex, int width, int count) {
+        float length = 1f * width / count;
+        return (1f * rightIndex * width / count - increasedRight) / length;
+    }
+
+    private float percentToLeftIndex(int leftIndex, int width, int count) {
+        float length = 1f * width / count;
+        return (increasedLeft - 1f * leftIndex * width / count) / length;
+    }
 }

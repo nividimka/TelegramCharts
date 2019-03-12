@@ -22,6 +22,7 @@ public class ChartView extends LinearLayout {
     Chart chart;
     ViewGroup checkboxesView;
     FullChartView fullChartView;
+    IncreasedChartView increasedChartView;
     Mode mode;
 
     public ChartView(Context context) {
@@ -43,6 +44,8 @@ public class ChartView extends LinearLayout {
         inflate(getContext(), R.layout.chart_view, this);
         checkboxesView = findViewById(R.id.checkboxes_view);
         fullChartView = findViewById(R.id.full_chart_view);
+        increasedChartView = findViewById(R.id.increased_chart_view);
+        fullChartView.setOnRangeChangeListener(increasedChartView);
         mode = Mode.DAY_MODE;
         updateBackgroundColor();
         initCheckboxes();
@@ -62,6 +65,7 @@ public class ChartView extends LinearLayout {
 
     private void initFullChart() {
         if(chart!=null) {
+            increasedChartView.setChart(chart);
             fullChartView.setLines(chart.getYLines());
         }
     }
