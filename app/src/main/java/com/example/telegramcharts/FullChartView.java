@@ -2,8 +2,12 @@ package com.example.telegramcharts;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.example.telegramcharts.data.Line;
@@ -12,20 +16,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.Nullable;
+import androidx.core.view.GestureDetectorCompat;
 
 public class FullChartView extends View {
     List<Line> lines;
     List<Paint> paints;
+    Paint blurPaint;
+    float increasedLeft = 0;
+    float increasedRight = 150;
+    private GestureDetectorCompat gestureDetector;
+
     public FullChartView(Context context) {
         super(context);
+        init();
     }
 
     public FullChartView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        init();
     }
 
     public FullChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    public void init(){
+        blurPaint = new Paint();
+        gestureDetector = new GestureDetectorCompat(getContext(), gestureListener);
+        blurPaint.setColor(Color.parseColor("#BBF4F7F8"));
     }
 
     @Override
@@ -34,13 +53,6 @@ public class FullChartView extends View {
         if(lines!=null){
             int width = getWidth();
             int height = getHeight();
-            //0*B+c = maxY
-            //height*B + c = minY
-            //(2-1) height*B = minY-maxY
-            // B = (minY-maxY)/height
-            // C = maxY
-            //? = y-c/B
-            //yCoord = (y-maxY)*height/(minY-maxY)
             int maxY = getMaxY(lines);
             int minY = getMinY(lines);
             for(int k =0; k < lines.size();k++) {
@@ -58,7 +70,28 @@ public class FullChartView extends View {
                     }
                 }
             }
+            canvas.drawRect(0,0,increasedLeft,getHeight(),blurPaint);
+            canvas.drawRect(increasedRight,0,getWidth(),getHeight(),blurPaint);
         }
+    }
+
+    boolean increaceCenterClicked = false;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int action = event.getAction();
+        switch (action){
+            case MotionEvent.ACTION_DOWN:
+                if(event.getX()<increasedRight && event.getX()>increasedLeft){
+                    increaceCenterClicked = true;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                increaceCenterClicked = false;
+                break;
+        }
+        boolean val = gestureDetector.onTouchEvent(event);
+        return val;
     }
 
     public void setLines(List<Line> lines) {
@@ -92,4 +125,56 @@ public class FullChartView extends View {
         }
         return minY;
     }
+
+
+    private GestureDetector.OnGestureListener gestureListener = new GestureDetector.OnGestureListener() {
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public void onShowPress(MotionEvent e) {
+            Log.e("onShowPress", e.toString());
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            return false;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            Log.e("onScroll", "onScroll");
+            if(increaceCenterClicked) {
+                float delta = increasedRight - increasedLeft;
+                float newLeft = e2.getX()-delta/2;
+                float newRight = e2.getX() + delta/2;
+                if(newLeft >=0 && newRight <=getWidth()) {
+                    increasedLeft = newLeft;
+                    increasedRight = newRight;
+                }
+                if(newLeft<0){
+                    increasedLeft = 0;
+                    increasedRight = delta;
+                }
+                if(newRight > getWidth()){
+                    increasedRight = getWidth();
+                    increasedLeft = getWidth()-delta;
+                }
+                invalidate();
+            }
+            return true;
+        }
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            return false;
+        }
+    };
 }
