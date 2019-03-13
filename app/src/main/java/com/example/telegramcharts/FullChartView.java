@@ -72,8 +72,8 @@ public class FullChartView extends View {
                         int y1 = line.getColumns()[i + 1];
                         int y0Scaled = (int) (((y0 - maxY)*1.0/ (minY - maxY)) * height);
                         int y1Scaled = (int) (((y1 - maxY)*1.0/(minY - maxY)) * height);
-                        int x0 = width * i / count;
-                        int x1 = width * (i + 1) / count;
+                        int x0 = width * i / (count-1);
+                        int x1 = width * (i + 1) / (count-1);
                         canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paints.get(k));
                     }
                 }
@@ -206,6 +206,7 @@ public class FullChartView extends View {
         int rightIndex = getNearestRightIndexPoint(getWidth(), increasedRight, pointCount);
         float percentToRightIndex = percentToRightIndex(rightIndex, getWidth(), pointCount);
         float percentToLeftIndex = percentToLeftIndex(leftIndex, getWidth(), pointCount);
+        Log.e("left index", rightIndex + " " + percentToRightIndex);
         if (onRangeChangeListener != null) {
             onRangeChangeListener.onRangeChange(leftIndex, rightIndex, percentToLeftIndex, percentToRightIndex);
         }
@@ -224,22 +225,22 @@ public class FullChartView extends View {
     }
 
     private int getNearestLeftIndexPoint(int width, float leftFrame, int count) {
-        float i = leftFrame * count / width;
+        float i = leftFrame * (count-1) / width;
         return (int) Math.floor(i);
     }
 
     private int getNearestRightIndexPoint(int width, float rightFrame, int count) {
-        float i = rightFrame * count / width;
+        float i = rightFrame * (count-1)/ width;
         return (int) Math.ceil(i);
     }
 
     private float percentToRightIndex(int rightIndex, int width, int count) {
-        float length = 1f * width / count;
-        return (1f * rightIndex * width / count - increasedRight) / length;
+        float length = 1f * width / (count-1);
+        return (1f * rightIndex * width / (count-1) - increasedRight) / length;
     }
 
     private float percentToLeftIndex(int leftIndex, int width, int count) {
-        float length = 1f * width / count;
-        return (increasedLeft - 1f * leftIndex * width / count) / length;
+        float length = 1f * width / (count-1);
+        return (increasedLeft - 1f * leftIndex * width / (count-1)) / length;
     }
 }

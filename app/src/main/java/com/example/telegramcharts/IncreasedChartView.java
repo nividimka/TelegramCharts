@@ -47,27 +47,31 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
             int height = getHeight();
             int maxY = getMaxY(chart.getYLines());
             int minY = getMinY(chart.getYLines());
+            //-2 because we don't want to include left and right point, just percents
+            float lengthInPoints = ((1-percentToRightIndex)+(1-percentToLeftIndex)+rightIndex-leftIndex-2);
+//            if(percentToLeftIndex==0){
+//                lengthInPoints = 1;
+//            }
+//            if(percentToRightIndex!=0){
+//                lengthInPoints -= 1;
+//            }
+            float widthBetweenPoints = width / lengthInPoints;
+            Log.e("widthBetweenPoints", "lengthInPoints"+((1-percentToRightIndex)+(1-percentToLeftIndex)+rightIndex-leftIndex-2));
+            Log.e("widthBetweenPoints", "width" + widthBetweenPoints);
             for (int k = 0; k < chart.getYLines().size(); k++) {
                 Line line = chart.getYLines().get(k);
                 if (!line.isHidden()) {
-                    int count = line.getColumns().length;
-                    for (int i = leftIndex; i < rightIndex-1; i++) {
+                    for (int i = leftIndex; i < rightIndex; i++) {
                         int y0 = line.getColumns()[i];
                         int y1 = line.getColumns()[i + 1];
                         int y0Scaled = (int) (((y0 - maxY)*1.0/ (minY - maxY)) * height);
                         int y1Scaled = (int) (((y1 - maxY)*1.0/(minY - maxY)) * height);
-                        int x0 = width * (i-leftIndex) / (rightIndex-leftIndex);
-                        int x1 = width * (i + 1-leftIndex) / (rightIndex-leftIndex);
+                        int x0 = (int) (widthBetweenPoints * (i-leftIndex-percentToLeftIndex));
+                        int x1 = (int) (widthBetweenPoints * (i+1-leftIndex-percentToLeftIndex));
                         canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paints.get(k));
                     }
                 }
             }
-//            canvas.drawRect(0, 0, increasedLeft, getHeight(), blurPaint);
-//            canvas.drawRect(increasedLeft, 0, increasedLeft + frameWidth, getHeight(), framePaint);
-//            canvas.drawRect(increasedRight - frameWidth, 0, increasedRight, getHeight(), framePaint);
-//            canvas.drawRect(increasedLeft + frameWidth, 0, increasedRight - frameWidth, frameHeight, framePaint);
-//            canvas.drawRect(increasedLeft + frameWidth, getHeight() - frameHeight, increasedRight - frameWidth, getHeight(), framePaint);
-//            canvas.drawRect(increasedRight, 0, getWidth(), getHeight(), blurPaint);
         }
     }
 
