@@ -87,7 +87,9 @@ public class FullChartView extends View {
         }
     }
 
-    boolean increaceCenterClicked = false;
+    boolean increaseCenterClicked = false;
+    boolean increaseRightClicked = false;
+    boolean increaseLeftClicked = false;
 
     public void setMode(Mode mode) {
         this.mode = mode;
@@ -101,12 +103,20 @@ public class FullChartView extends View {
         int action = event.getAction();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                if (event.getX() < increasedRight && event.getX() > increasedLeft) {
-                    increaceCenterClicked = true;
+                if (event.getX() < (increasedRight - 30) && event.getX() > (increasedLeft+30)) {
+                    increaseCenterClicked = true;
+                }
+                if (event.getX() >= increasedRight-30 && event.getX() <= increasedRight+30){
+                    increaseRightClicked = true;
+                }
+                if (event.getX() >= increasedLeft-30 && event.getX() <= increasedLeft+30){
+                    increaseLeftClicked = true;
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                increaceCenterClicked = false;
+                increaseCenterClicked = false;
+                increaseRightClicked = false;
+                increaseLeftClicked = false;
                 break;
         }
         boolean val = gestureDetector.onTouchEvent(event);
@@ -127,9 +137,9 @@ public class FullChartView extends View {
     }
 
     public static int getMaxY(List<Line> lines) {
-        int maxY = lines.get(0).getMaxY();
+        int maxY = Integer.MIN_VALUE;
         for (Line line : lines) {
-            if (maxY < line.getMaxY()) {
+            if (!line.isHidden() && maxY < line.getMaxY()) {
                 maxY = line.getMaxY();
             }
         }
@@ -137,9 +147,9 @@ public class FullChartView extends View {
     }
 
     public static int getMinY(List<Line> lines) {
-        int minY = lines.get(0).getMinY();
+        int minY = Integer.MAX_VALUE;
         for (Line line : lines) {
-            if (minY > line.getMinY()) {
+            if (!line.isHidden() && minY > line.getMinY()) {
                 minY = line.getMinY();
             }
         }
@@ -165,7 +175,7 @@ public class FullChartView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            if (increaceCenterClicked) {
+            if (increaseCenterClicked) {
                 float delta = increasedRight - increasedLeft;
                 float newLeft = e2.getX() - delta / 2;
                 float newRight = e2.getX() + delta / 2;
@@ -185,6 +195,36 @@ public class FullChartView extends View {
                     updateIncreasedView();
                 }
                 invalidate();
+            }
+            if(increaseRightClicked){
+                float newRight = e2.getX();
+                float delta = newRight - increasedLeft;
+                if(delta>=150){
+                    if(newRight> getWidth()){
+                        increasedRight = getWidth();
+                    }else {
+                        increasedRight = newRight;
+                    }
+                }else{
+                    increasedRight = increasedLeft + 150;
+                }
+                invalidate();
+                updateIncreasedView();
+            }
+            if(increaseLeftClicked){
+                float newLeft = e2.getX();
+                float delta = increasedRight - newLeft;
+                if(delta>=150){
+                    if(newLeft< 0){
+                        increasedLeft = 0;
+                    }else {
+                        increasedLeft = newLeft;
+                    }
+                }else{
+                    increasedLeft = increasedRight - 150;
+                }
+                invalidate();
+                updateIncreasedView();
             }
             return true;
         }

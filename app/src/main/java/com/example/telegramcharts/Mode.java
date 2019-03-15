@@ -11,7 +11,8 @@ class Mode {
                 int statusbarColor,
                 int viewBackgroundColor,
                 int blurColor,
-                int frameColor) {
+                int frameColor,
+                int textColor) {
         this.separatorColor = separatorColor;
         this.backgroundColor = backgroundColor;
         this.toolbarColor = toolbarColor;
@@ -19,6 +20,7 @@ class Mode {
         this.viewBackgroundColor = viewBackgroundColor;
         this.blurColor = blurColor;
         this.frameColor = frameColor;
+        this.textColor = textColor;
     }
     int frameColor;
     int viewBackgroundColor;
@@ -27,6 +29,7 @@ class Mode {
     int toolbarColor;
     int statusbarColor;
     int blurColor;
+    int textColor;
     public int getSeparatorColor() {
         return separatorColor;
     }
@@ -60,7 +63,8 @@ class Mode {
             Color.parseColor("#1A242E"),
             Color.parseColor("#1D2733"),
             Color.parseColor("#C117222D"),
-            Color.parseColor("#3462ACDF")
+            Color.parseColor("#3462ACDF"),
+            Color.parseColor("#FDFDFE")
             );
 
     public static Mode DAY_MODE = new Mode(
@@ -70,7 +74,8 @@ class Mode {
             Color.parseColor("#426381"),
             Color.parseColor("#FDFDFE"),
             Color.parseColor("#BAF0F4F6"),
-            Color.parseColor("#324B80B4")
+            Color.parseColor("#324B80B4"),
+            Color.parseColor("#222222")
             );
 
 }
