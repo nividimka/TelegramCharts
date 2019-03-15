@@ -1,5 +1,6 @@
 package com.example.telegramcharts;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -8,6 +9,9 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 
 import com.example.telegramcharts.data.Chart;
 import com.example.telegramcharts.data.Line;
@@ -31,6 +35,8 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     Paint backgroundPaint;
     Mode mode;
     GestureDetectorCompat gestureDetector;
+    int currentMinY;
+    int currentMaxY;
 
     public IncreasedChartView(Context context) {
         super(context);
@@ -57,12 +63,11 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Log.e("onDraw", "onDraw");
         if (chart != null) {
             int width = getWidth();
             int height = getHeight();
-            int maxY = getMaxY(chart.getYLines());
-            int minY = getMinY(chart.getYLines());
+            int maxY = currentMaxY;
+            int minY = currentMinY;
             //-2 because we don't want to include left and right point, just percents
             float lengthInPoints = rightIndex-leftIndex-percentToRightIndex-percentToLeftIndex;
             float widthBetweenPoints = width / lengthInPoints;
@@ -98,6 +103,8 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     @Override
     public void onRangeChange(int leftIndex, int rightIndex, float percentToLeftIndex, float percentToRightIndex) {
         Log.e("onRangeChange", "onRangeChange");
+        assert leftIndex >= 0;
+        assert rightIndex < chart.getYLines().get(0).getColumns().length;
         this.leftIndex = leftIndex;
         this.rightIndex = rightIndex;
         this.percentToLeftIndex = percentToLeftIndex;
@@ -118,6 +125,11 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
             paint.setStrokeWidth(4);
             paints.add(paint);
         }
+    }
+    public void initChart(Chart chart) {
+        setChart(chart);
+        currentMaxY = getMaxY(chart.getYLines());
+        currentMinY = getMinY(chart.getYLines());
     }
 
 
@@ -185,9 +197,32 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
         backgroundPaint.setColor(mode.viewBackgroundColor);
         invalidate();
     }
-
-    public void changeHidden(Chart chart) {
+    ValueAnimator animator;
+    public void changeMinMax(Chart chart) {
+        if(animator!=null) animator.cancel();
         setChart(chart);
-
+        if(currentMaxY!=Integer.MIN_VALUE && getMaxY(chart.getYLines())!=Integer.MIN_VALUE) {
+            final int oldMax = currentMaxY;
+            final int oldMin = currentMinY;
+            final int maxY = getMaxY(chart.getYLines());
+            final int minY = getMinY(chart.getYLines());
+            animator = ValueAnimator.ofFloat(0, 1);
+            animator.setDuration(1000);
+//            animator.setInterpolator(new LinearInterpolator());
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (float) animation.getAnimatedValue();
+                    currentMaxY = (int) (oldMax + (maxY-oldMax)*value);
+                    currentMinY = (int) (oldMin + (minY-oldMin) * value);
+                    invalidate();
+                }
+            });
+            animator.start();
+        }else{
+            currentMaxY = getMaxY(chart.getYLines());
+            currentMinY = getMinY(chart.getYLines());
+            invalidate();
+        }
     }
 }

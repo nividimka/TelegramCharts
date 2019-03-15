@@ -67,7 +67,7 @@ public class ChartView extends LinearLayout {
 
     private void initFullChart() {
         if(chart!=null) {
-            increasedChartView.setChart(chart);
+            increasedChartView.initChart(chart);
             fullChartView.setLines(chart.getYLines());
         }
     }
@@ -95,8 +95,7 @@ public class ChartView extends LinearLayout {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                         line.setHidden(!isChecked);
-                        changeHidden();
-                        initFullChart();
+                        changeMinMax();
                     }
                 });
                 LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -119,9 +118,10 @@ public class ChartView extends LinearLayout {
         }
     }
 
-    private void changeHidden() {
+    private void changeMinMax() {
         if(chart!=null){
-            increasedChartView.changeHidden(chart);
+            increasedChartView.changeMinMax(chart);
+            increasedChartView.initChart(chart);
         }
     }
 
