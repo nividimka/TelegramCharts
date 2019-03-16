@@ -15,6 +15,7 @@ import android.view.animation.LinearInterpolator;
 
 import com.example.telegramcharts.data.Chart;
 import com.example.telegramcharts.data.Line;
+import com.example.telegramcharts.utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,8 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     GestureDetectorCompat gestureDetector;
     int currentMinY;
     int currentMaxY;
+    int leftPadding;
+    int rightPadding;
 
     public IncreasedChartView(Context context) {
         super(context);
@@ -55,6 +58,8 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
 
     private void init(){
         mode = Mode.DAY_MODE;
+        leftPadding = ViewUtils.toPx(getContext(), 20);
+        rightPadding = ViewUtils.toPx(getContext(), 20);
         gestureDetector = new GestureDetectorCompat(getContext(), gestureListener);
         backgroundPaint = new Paint();
         backgroundPaint.setColor(mode.viewBackgroundColor);
@@ -64,25 +69,24 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (chart != null) {
-            int width = getWidth();
-            int height = getHeight();
-            int maxY = currentMaxY;
-            int minY = currentMinY;
+            int size = chart.getYLines().get(0).getColumns().length;
+            int drawingLeftIndex = leftIndex;
+            int drawingRightIndex = rightIndex;
+            if(drawingLeftIndex!=0){
+                drawingLeftIndex -= 1;
+            }
+            if(drawingRightIndex!=size-1){
+                drawingRightIndex += 1;
+            }
             //-2 because we don't want to include left and right point, just percents
             float lengthInPoints = rightIndex-leftIndex-percentToRightIndex-percentToLeftIndex;
-            float widthBetweenPoints = width / lengthInPoints;
+            float widthBetweenPoints = (getWidth()-leftPadding-rightPadding) / lengthInPoints;
             for (int k = 0; k < chart.getYLines().size(); k++) {
                 Line line = chart.getYLines().get(k);
                 if (!line.isHidden()) {
-                    for (int i = leftIndex; i < rightIndex; i++) {
-                        int y0 = line.getColumns()[i];
-                        int y1 = line.getColumns()[i + 1];
-                        int y0Scaled = (int) (((y0 - maxY)*1.0/ (minY - maxY)) * height);
-                        int y1Scaled = (int) (((y1 - maxY)*1.0/(minY - maxY)) * height);
-                        int x0 = (int) (widthBetweenPoints * (i-leftIndex-percentToLeftIndex));
-                        int x1 = (int) (widthBetweenPoints * (i+1-leftIndex-percentToLeftIndex));
-                        canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paints.get(k));
-                    }
+                    drawLeftMissingPoints(canvas,line,widthBetweenPoints,paints.get(k));
+                    drawPoints(canvas,line,widthBetweenPoints,paints.get(k));
+                    drawRightMissingPoints(canvas,line,widthBetweenPoints,paints.get(k));
                 }
             }
             if(selectedPoint){
@@ -90,7 +94,7 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
                     Line line = chart.getYLines().get(k);
                     if (!line.isHidden()) {
                         int y0 = line.getColumns()[selectedPointIndex];
-                        int y0Scaled = (int) (((y0 - maxY)*1.0/ (minY - maxY)) * height);
+                        int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
                         int x0 = (int) (widthBetweenPoints * (selectedPointIndex-leftIndex-percentToLeftIndex));
                         canvas.drawCircle(x0,y0Scaled,15,paints.get(k));
                         canvas.drawCircle(x0,y0Scaled,10,backgroundPaint);
@@ -100,9 +104,52 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
         }
     }
 
+    private void drawPoints(Canvas canvas,Line line,float widthBetweenPoints, Paint paint) {
+        for (int i = leftIndex; i < rightIndex; i++) {
+            int y0 = line.getColumns()[i];
+            int y1 = line.getColumns()[i + 1];
+            int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
+            int y1Scaled = (int) (((y1 - currentMaxY)*1.0/(currentMinY - currentMaxY)) * getHeight());
+            int x0 = (int) (widthBetweenPoints * (i-leftIndex-percentToLeftIndex))+leftPadding;
+            int x1 = (int) (widthBetweenPoints * (i+1-leftIndex-percentToLeftIndex))+leftPadding;
+            canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paint);
+        }
+    }
+
+    private void drawLeftMissingPoints(Canvas canvas,Line line, float widthBetweenPoints, Paint paint) {
+        int currentLeftPointIndex = leftIndex;
+        int x0 = 0;
+        while (currentLeftPointIndex>0 && x0 >= 0){
+            int y0 = line.getColumns()[currentLeftPointIndex-1];
+            int y1 = line.getColumns()[currentLeftPointIndex];
+            int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
+            int y1Scaled = (int) (((y1 - currentMaxY)*1.0/(currentMinY - currentMaxY)) * getHeight());
+            x0 = (int) (widthBetweenPoints * (currentLeftPointIndex-1-leftIndex-percentToLeftIndex))+leftPadding;
+            int x1 = (int) (widthBetweenPoints * (currentLeftPointIndex-leftIndex-percentToLeftIndex))+leftPadding;
+            canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paint);
+            currentLeftPointIndex--;
+        }
+    }
+
+    private void drawRightMissingPoints(Canvas canvas,Line line, float widthBetweenPoints, Paint paint) {
+        int currentRightPointIndex = rightIndex;
+        int x1 = getWidth();
+        int size = line.getColumns().length;
+        while ((currentRightPointIndex+1<=size-1) && x1 <= getWidth()){
+            int y0 = line.getColumns()[currentRightPointIndex];
+            int y1 = line.getColumns()[currentRightPointIndex+1];
+            int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
+            int y1Scaled = (int) (((y1 - currentMaxY)*1.0/(currentMinY - currentMaxY)) * getHeight());
+            int x0 = (int) (widthBetweenPoints * (currentRightPointIndex-leftIndex-percentToLeftIndex))+leftPadding;
+            x1 = (int) (widthBetweenPoints * (currentRightPointIndex+1-leftIndex-percentToLeftIndex))+leftPadding;
+            canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paint);
+            currentRightPointIndex++;
+        }
+    }
+
     @Override
     public void onRangeChange(int leftIndex, int rightIndex, float percentToLeftIndex, float percentToRightIndex) {
-        Log.e("onRangeChange", "onRangeChange");
+        Log.e("onRangeChange", "onRangeChange" +leftIndex + " " + rightIndex + " " + percentToLeftIndex + " " + percentToRightIndex);
         assert leftIndex >= 0;
         assert rightIndex < chart.getYLines().get(0).getColumns().length;
         this.leftIndex = leftIndex;
