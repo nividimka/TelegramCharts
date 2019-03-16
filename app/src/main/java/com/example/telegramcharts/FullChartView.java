@@ -1,5 +1,6 @@
 package com.example.telegramcharts;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.example.telegramcharts.data.Chart;
 import com.example.telegramcharts.data.Line;
 
 import java.util.ArrayList;
@@ -30,6 +32,9 @@ public class FullChartView extends View {
     float frameWidth = 10;
     private GestureDetectorCompat gestureDetector;
     private OnRangeChangeListener onRangeChangeListener;
+
+    int currentMax;
+    int currentMin;
 
     public FullChartView(Context context) {
         super(context);
@@ -61,8 +66,8 @@ public class FullChartView extends View {
         if (lines != null) {
             int width = getWidth();
             int height = getHeight();
-            int maxY = getMaxY(lines);
-            int minY = getMinY(lines);
+            int maxY = currentMax;
+            int minY = currentMin;
             for (int k = 0; k < lines.size(); k++) {
                 Line line = lines.get(k);
                 if (!line.isHidden()) {
@@ -123,8 +128,8 @@ public class FullChartView extends View {
         return val;
     }
 
-    public void setLines(List<Line> lines) {
-        this.lines = lines;
+    public void setChart(Chart chart){
+        this.lines = chart.getYLines();
         paints = new ArrayList<>();
         for (Line line : lines) {
             Paint paint = new Paint();
@@ -132,6 +137,12 @@ public class FullChartView extends View {
             paint.setStrokeWidth(4);
             paints.add(paint);
         }
+    }
+
+    public void initChart(Chart chart) {
+        setChart(chart);
+        currentMax = getMaxY(chart.getYLines());
+        currentMin = getMinY(chart.getYLines());
         updateIncreasedView();
         invalidate();
     }
@@ -258,6 +269,33 @@ public class FullChartView extends View {
 
     public void setOnRangeChangeListener(OnRangeChangeListener onRangeChangeListener) {
         this.onRangeChangeListener = onRangeChangeListener;
+    }
+    ValueAnimator animator;
+    public void changeMinMax(Chart chart) {
+        if(animator!=null) animator.cancel();
+        setChart(chart);
+        if(currentMax!=Integer.MIN_VALUE && getMaxY(chart.getYLines())!=Integer.MIN_VALUE) {
+            final int oldMax = currentMax;
+            final int oldMin = currentMin;
+            final int maxY = getMaxY(chart.getYLines());
+            final int minY = getMinY(chart.getYLines());
+            animator = ValueAnimator.ofFloat(0, 1);
+            animator.setDuration(500);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (float) animation.getAnimatedValue();
+                    currentMax = (int) (oldMax + (maxY-oldMax)*value);
+                    currentMin = (int) (oldMin + (minY-oldMin) * value);
+                    invalidate();
+                }
+            });
+            animator.start();
+        }else{
+            currentMax = getMaxY(chart.getYLines());
+            currentMin = getMinY(chart.getYLines());
+            invalidate();
+        }
     }
 
     interface OnRangeChangeListener {

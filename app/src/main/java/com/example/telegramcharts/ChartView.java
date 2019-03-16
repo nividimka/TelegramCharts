@@ -68,7 +68,7 @@ public class ChartView extends LinearLayout {
     private void initFullChart() {
         if(chart!=null) {
             increasedChartView.initChart(chart);
-            fullChartView.setLines(chart.getYLines());
+            fullChartView.initChart(chart);
         }
     }
 
@@ -121,7 +121,7 @@ public class ChartView extends LinearLayout {
     private void changeMinMax() {
         if(chart!=null){
             increasedChartView.changeMinMax(chart);
-            increasedChartView.initChart(chart);
+            fullChartView.changeMinMax(chart);
         }
     }
 

@@ -207,8 +207,7 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
             final int maxY = getMaxY(chart.getYLines());
             final int minY = getMinY(chart.getYLines());
             animator = ValueAnimator.ofFloat(0, 1);
-            animator.setDuration(1000);
-//            animator.setInterpolator(new LinearInterpolator());
+            animator.setDuration(500);
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
