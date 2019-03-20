@@ -9,139 +9,143 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 
 import com.example.telegramcharts.data.Chart;
+import com.example.telegramcharts.data.ChartHolder;
+import com.example.telegramcharts.data.LeftRightDataHolder;
 import com.example.telegramcharts.data.Line;
+import com.example.telegramcharts.data.TopBottomDataHolder;
 import com.example.telegramcharts.utils.ViewUtils;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
-import androidx.annotation.Nullable;
-import androidx.core.view.GestureDetectorCompat;
 
-import static com.example.telegramcharts.FullChartView.getMaxY;
-import static com.example.telegramcharts.FullChartView.getMinY;
-
-public class IncreasedChartView extends View implements FullChartView.OnRangeChangeListener {
-    int leftIndex;
-    int rightIndex;
-    float percentToLeftIndex;
-    float percentToRightIndex;
-    Chart chart;
-    List<Paint> paints;
-    Paint backgroundPaint;
+public class IncreasedChartView extends View implements FullChartView.OnRangeChangeListener, FullChartView.OnMinMaxAnimateListener {
+    Paint verticalGridPaint;
     Mode mode;
-    GestureDetectorCompat gestureDetector;
-    int currentMinY;
-    int currentMaxY;
+    GestureDetector gestureDetector;
     int leftPadding;
     int rightPadding;
+    int topPadding;
+    int bottomPadding;
+    ChartGridViewDelegate chartGridViewDelegate;
+    ChartSelectedPointViewDelegate chartSelectedPointViewDelegate;
+    TopBottomDataHolder topBottomDataHolder;
+    LeftRightDataHolder leftRightDataHolder;
+    ChartHolder chartHolder;
 
     public IncreasedChartView(Context context) {
         super(context);
         init();
     }
 
-    public IncreasedChartView(Context context, @Nullable AttributeSet attrs) {
+    public IncreasedChartView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public IncreasedChartView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public IncreasedChartView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
 
     private void init(){
+        chartHolder = new ChartHolder();
+        topBottomDataHolder = new TopBottomDataHolder();
+        leftRightDataHolder = new LeftRightDataHolder();
         mode = Mode.DAY_MODE;
+        chartGridViewDelegate = new ChartGridViewDelegate(mode,
+                chartHolder,
+                leftRightDataHolder,
+                ViewUtils.toPx(getContext(),60),
+                ViewUtils.toPx(getContext(),12),
+                topBottomDataHolder);
+        chartSelectedPointViewDelegate = new ChartSelectedPointViewDelegate(topBottomDataHolder,
+                leftRightDataHolder,
+                chartHolder,
+                mode);
         leftPadding = ViewUtils.toPx(getContext(), 20);
         rightPadding = ViewUtils.toPx(getContext(), 20);
-        gestureDetector = new GestureDetectorCompat(getContext(), gestureListener);
-        backgroundPaint = new Paint();
-        backgroundPaint.setColor(mode.viewBackgroundColor);
+        topPadding = ViewUtils.toPx(getContext(), 20);
+        bottomPadding = ViewUtils.toPx(getContext(), 20);
+        topBottomDataHolder.setTopPadding(topPadding);
+        topBottomDataHolder.setBottomPadding(bottomPadding);
+        leftRightDataHolder.setLeftPadding(leftPadding);
+        leftRightDataHolder.setRightPadding(rightPadding);
+        gestureDetector = new GestureDetector(getContext(), gestureListener);
+        verticalGridPaint = new Paint();
+        verticalGridPaint.setColor(mode.verticalGridColor);
+        addOnLayoutChangeListener(new OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                chartGridViewDelegate.setLayoutBoards(left, top, right, bottom);
+                leftRightDataHolder.setWidth(Math.abs(left-right)-leftPadding-rightPadding);
+                topBottomDataHolder.setHeight(Math.abs(top-bottom)-topPadding-bottomPadding);
+            }
+        });
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (chart != null) {
-            int size = chart.getYLines().get(0).getColumns().length;
-            int drawingLeftIndex = leftIndex;
-            int drawingRightIndex = rightIndex;
-            if(drawingLeftIndex!=0){
-                drawingLeftIndex -= 1;
-            }
-            if(drawingRightIndex!=size-1){
-                drawingRightIndex += 1;
-            }
-            //-2 because we don't want to include left and right point, just percents
-            float lengthInPoints = rightIndex-leftIndex-percentToRightIndex-percentToLeftIndex;
-            float widthBetweenPoints = (getWidth()-leftPadding-rightPadding) / lengthInPoints;
-            for (int k = 0; k < chart.getYLines().size(); k++) {
-                Line line = chart.getYLines().get(k);
+        if (chartHolder.getChart() != null) {
+            float widthBetweenPoints = leftRightDataHolder.getWidthBetweenPoints();
+            chartGridViewDelegate.onDraw(canvas);
+            for (int k = 0; k < chartHolder.getChart().getYLines().size(); k++) {
+                Line line = chartHolder.getChart().getYLines().get(k);
                 if (!line.isHidden()) {
-                    drawLeftMissingPoints(canvas,line,widthBetweenPoints,paints.get(k));
-                    drawPoints(canvas,line,widthBetweenPoints,paints.get(k));
-                    drawRightMissingPoints(canvas,line,widthBetweenPoints,paints.get(k));
+                    drawLeftMissingPoints(canvas,line,widthBetweenPoints,chartHolder.getPaints().get(k));
+                    drawPoints(canvas,line,widthBetweenPoints,chartHolder.getPaints().get(k));
+                    drawRightMissingPoints(canvas,line,widthBetweenPoints,chartHolder.getPaints().get(k));
                 }
             }
-            if(selectedPoint){
-                for (int k = 0; k < chart.getYLines().size(); k++) {
-                    Line line = chart.getYLines().get(k);
-                    if (!line.isHidden()) {
-                        int y0 = line.getColumns()[selectedPointIndex];
-                        int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
-                        int x0 = (int) (widthBetweenPoints * (selectedPointIndex-leftIndex-percentToLeftIndex));
-                        canvas.drawCircle(x0,y0Scaled,15,paints.get(k));
-                        canvas.drawCircle(x0,y0Scaled,10,backgroundPaint);
-                    }
-                }
-            }
+
+            chartSelectedPointViewDelegate.onDraw(canvas);
+
         }
     }
 
+
     private void drawPoints(Canvas canvas,Line line,float widthBetweenPoints, Paint paint) {
-        for (int i = leftIndex; i < rightIndex; i++) {
+        for (int i = leftRightDataHolder.getLeftIndex(); i < leftRightDataHolder.getRightIndex(); i++) {
             int y0 = line.getColumns()[i];
             int y1 = line.getColumns()[i + 1];
-            int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
-            int y1Scaled = (int) (((y1 - currentMaxY)*1.0/(currentMinY - currentMaxY)) * getHeight());
-            int x0 = (int) (widthBetweenPoints * (i-leftIndex-percentToLeftIndex))+leftPadding;
-            int x1 = (int) (widthBetweenPoints * (i+1-leftIndex-percentToLeftIndex))+leftPadding;
+            int y0Scaled = topBottomDataHolder.getScaledY(y0);
+            int y1Scaled = topBottomDataHolder.getScaledY(y1);
+            int x0 = (int) (widthBetweenPoints * (i-leftRightDataHolder.getLeftIndex()-leftRightDataHolder.getPercentToLeftIndex()))+leftPadding;
+            int x1 = (int) (widthBetweenPoints * (i+1-leftRightDataHolder.getLeftIndex()-leftRightDataHolder.getPercentToLeftIndex()))+leftPadding;
             canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paint);
         }
     }
 
     private void drawLeftMissingPoints(Canvas canvas,Line line, float widthBetweenPoints, Paint paint) {
-        int currentLeftPointIndex = leftIndex;
+        int currentLeftPointIndex = leftRightDataHolder.getLeftIndex();
         int x0 = 0;
         while (currentLeftPointIndex>0 && x0 >= 0){
             int y0 = line.getColumns()[currentLeftPointIndex-1];
             int y1 = line.getColumns()[currentLeftPointIndex];
-            int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
-            int y1Scaled = (int) (((y1 - currentMaxY)*1.0/(currentMinY - currentMaxY)) * getHeight());
-            x0 = (int) (widthBetweenPoints * (currentLeftPointIndex-1-leftIndex-percentToLeftIndex))+leftPadding;
-            int x1 = (int) (widthBetweenPoints * (currentLeftPointIndex-leftIndex-percentToLeftIndex))+leftPadding;
+            int y0Scaled = topBottomDataHolder.getScaledY(y0);
+            int y1Scaled = topBottomDataHolder.getScaledY(y1);
+            x0 = (int) (widthBetweenPoints * (currentLeftPointIndex-1-leftRightDataHolder.getLeftIndex()-leftRightDataHolder.getPercentToLeftIndex()))+leftPadding;
+            int x1 = (int) (widthBetweenPoints * (currentLeftPointIndex-leftRightDataHolder.getLeftIndex()-leftRightDataHolder.getPercentToLeftIndex()))+leftPadding;
             canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paint);
             currentLeftPointIndex--;
         }
     }
 
     private void drawRightMissingPoints(Canvas canvas,Line line, float widthBetweenPoints, Paint paint) {
-        int currentRightPointIndex = rightIndex;
+        int currentRightPointIndex = leftRightDataHolder.getRightIndex();
         int x1 = getWidth();
         int size = line.getColumns().length;
         while ((currentRightPointIndex+1<=size-1) && x1 <= getWidth()){
             int y0 = line.getColumns()[currentRightPointIndex];
             int y1 = line.getColumns()[currentRightPointIndex+1];
-            int y0Scaled = (int) (((y0 - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getHeight());
-            int y1Scaled = (int) (((y1 - currentMaxY)*1.0/(currentMinY - currentMaxY)) * getHeight());
-            int x0 = (int) (widthBetweenPoints * (currentRightPointIndex-leftIndex-percentToLeftIndex))+leftPadding;
-            x1 = (int) (widthBetweenPoints * (currentRightPointIndex+1-leftIndex-percentToLeftIndex))+leftPadding;
+            int y0Scaled = topBottomDataHolder.getScaledY(y0);
+            int y1Scaled = topBottomDataHolder.getScaledY(y1);
+            int x0 = (int) (widthBetweenPoints * (currentRightPointIndex-leftRightDataHolder.getLeftIndex()-leftRightDataHolder.getPercentToLeftIndex()))+leftPadding;
+            x1 = (int) (widthBetweenPoints * (currentRightPointIndex+1-leftRightDataHolder.getLeftIndex()-leftRightDataHolder.getPercentToLeftIndex()))+leftPadding;
             canvas.drawLine(x0, y0Scaled, x1, y1Scaled, paint);
             currentRightPointIndex++;
         }
@@ -151,48 +155,46 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     public void onRangeChange(int leftIndex, int rightIndex, float percentToLeftIndex, float percentToRightIndex) {
         Log.e("onRangeChange", "onRangeChange" +leftIndex + " " + rightIndex + " " + percentToLeftIndex + " " + percentToRightIndex);
         assert leftIndex >= 0;
-        assert rightIndex < chart.getYLines().get(0).getColumns().length;
-        this.leftIndex = leftIndex;
-        this.rightIndex = rightIndex;
-        this.percentToLeftIndex = percentToLeftIndex;
-        this.percentToRightIndex = percentToRightIndex;
+        assert rightIndex < chartHolder.getChart().getYLines().get(0).getColumns().length;
+        this.leftRightDataHolder.setLeftIndex(leftIndex);
+        this.leftRightDataHolder.setRightIndex(rightIndex);
+        this.leftRightDataHolder.setPercentToLeftIndex(percentToLeftIndex);
+        this.leftRightDataHolder.setPercentToRightIndex(percentToRightIndex);
         invalidate();
     }
 
-    public Chart getChart() {
-        return chart;
-    }
-
     public void setChart(Chart chart) {
-        this.chart = chart;
-        paints = new ArrayList<>();
-        for (Line line : chart.getYLines()) {
-            Paint paint = new Paint();
-            paint.setColor(line.getColor());
-            paint.setStrokeWidth(4);
-            paints.add(paint);
-        }
+        chartHolder.setChart(chart);
     }
     public void initChart(Chart chart) {
         setChart(chart);
-        currentMaxY = getMaxY(chart.getYLines());
-        currentMinY = getMinY(chart.getYLines());
+        leftRightDataHolder.setLeftIndex(0);
+        leftRightDataHolder.setRightIndex(0);
+        leftRightDataHolder.setPercentToRightIndex(0);
+        leftRightDataHolder.setPercentToLeftIndex(0);
+        topBottomDataHolder.setCurrentMaxY(getMaxY(chartHolder.getChart().getYLines()));
+        topBottomDataHolder.setCurrentMinY(getMinY(chartHolder.getChart().getYLines()));
+        invalidate();
     }
 
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        int action = event.getAction();
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                chartSelectedPointViewDelegate.updateSelectedPoint(event.getX(), event.getY());
+                break;
+            case MotionEvent.ACTION_UP:
+                chartSelectedPointViewDelegate.resetSelectedPointClicked();
+                invalidate();
+                break;
+        }
         boolean val = gestureDetector.onTouchEvent(event);
         return val;
     }
 
-    boolean selectedPoint = false;
-    int selectedPointIndex;
-
-    private int getNearestIndexPoint(int width, float point, int count) {
-        float i = point * (count-1)/ width;
-        return (int) Math.round(i);
-    }
 
     private GestureDetector.OnGestureListener gestureListener = new GestureDetector.OnGestureListener() {
         @Override
@@ -207,25 +209,13 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            selectedPoint = !selectedPoint;
-            if(selectedPoint) {
-                if (rightIndex - leftIndex == 1) {
-                    return false;
-                }
-                int index = leftIndex+getNearestIndexPoint(getWidth(), e.getX(), rightIndex - leftIndex);
-                if (index == leftIndex & percentToLeftIndex >= 0) {
-                    index = 1;
-                } else if (index == rightIndex & percentToRightIndex >= 0) {
-                    index = rightIndex - 1;
-                }
-                selectedPointIndex = index;
-            }
-            invalidate();
             return true;
         }
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            chartSelectedPointViewDelegate.onScroll(e2.getX(),e2.getY());
+            invalidate();
             return true;
         }
 
@@ -241,33 +231,68 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     };
 
     public void setMode(Mode mode) {
-        backgroundPaint.setColor(mode.viewBackgroundColor);
+        chartGridViewDelegate.setMode(mode);
+        chartSelectedPointViewDelegate.setMode(mode);
+        verticalGridPaint.setColor(mode.verticalGridColor);
         invalidate();
     }
     ValueAnimator animator;
     public void changeMinMax(Chart chart) {
-        if(animator!=null) animator.cancel();
         setChart(chart);
-        if(currentMaxY!=Integer.MIN_VALUE && getMaxY(chart.getYLines())!=Integer.MIN_VALUE) {
-            final int oldMax = currentMaxY;
-            final int oldMin = currentMinY;
-            final int maxY = getMaxY(chart.getYLines());
-            final int minY = getMinY(chart.getYLines());
+        animateMinMax();
+    }
+
+
+    public int getMaxY(List<Line> lines) {
+        int maxY = Integer.MIN_VALUE;
+        for (Line line : lines) {
+            for(int i = leftRightDataHolder.getLeftIndex(); i <= leftRightDataHolder.getRightIndex();i++) {
+                if (!line.isHidden() && maxY < line.getColumns()[i]) {
+                    maxY = line.getColumns()[i];
+                }
+            }
+        }
+        return maxY;
+    }
+
+    public int getMinY(List<Line> lines) {
+        int minY = Integer.MAX_VALUE;
+        for (Line line : lines) {
+            for(int i = leftRightDataHolder.getLeftIndex(); i <= leftRightDataHolder.getRightIndex();i++) {
+                if (!line.isHidden() && minY > line.getColumns()[i]) {
+                    minY = line.getColumns()[i];
+                }
+            }
+        }
+        return minY;
+    }
+
+    @Override
+    public void animateMinMax() {
+        if(animator!=null) animator.cancel();
+        if(topBottomDataHolder.getCurrentMaxY()!=Integer.MIN_VALUE && getMaxY(chartHolder.getChart().getYLines())!=Integer.MIN_VALUE) {
+            final int oldMax = topBottomDataHolder.getCurrentMaxY();
+            final int oldMin = topBottomDataHolder.getCurrentMinY();
+            final int maxY = getMaxY(chartHolder.getChart().getYLines());
+            final int minY = getMinY(chartHolder.getChart().getYLines());
             animator = ValueAnimator.ofFloat(0, 1);
-            animator.setDuration(500);
+            animator.setDuration(200);
+            animator.setInterpolator(new LinearInterpolator());
+            chartGridViewDelegate.startAnimate();
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float value = (float) animation.getAnimatedValue();
-                    currentMaxY = (int) (oldMax + (maxY-oldMax)*value);
-                    currentMinY = (int) (oldMin + (minY-oldMin) * value);
+                    chartGridViewDelegate.animate(value);
+                    topBottomDataHolder.setCurrentMaxY((int) (oldMax + (maxY - oldMax) * value));
+                    topBottomDataHolder.setCurrentMinY((int) (oldMin + (minY - oldMin) * value));
                     invalidate();
                 }
             });
             animator.start();
         }else{
-            currentMaxY = getMaxY(chart.getYLines());
-            currentMinY = getMinY(chart.getYLines());
+            topBottomDataHolder.setCurrentMaxY(getMaxY(chartHolder.getChart().getYLines()));
+            topBottomDataHolder.setCurrentMinY(getMinY(chartHolder.getChart().getYLines()));
             invalidate();
         }
     }

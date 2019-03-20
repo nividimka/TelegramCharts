@@ -2,9 +2,5 @@
 <com.example.telegramcharts.ChartView android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/chart_view"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintLeft_toLeftOf="parent"
-    app:layout_constraintRight_toRightOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android" />

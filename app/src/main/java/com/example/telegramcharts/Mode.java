@@ -12,7 +12,11 @@ class Mode {
                 int viewBackgroundColor,
                 int blurColor,
                 int frameColor,
-                int textColor) {
+                int textColor,
+                int horizontalGridColor,
+                int verticalGridColor,
+                int gridTextColor,
+                int summaryBoarderColor) {
         this.separatorColor = separatorColor;
         this.backgroundColor = backgroundColor;
         this.toolbarColor = toolbarColor;
@@ -21,15 +25,23 @@ class Mode {
         this.blurColor = blurColor;
         this.frameColor = frameColor;
         this.textColor = textColor;
+        this.horizontalGridColor = horizontalGridColor;
+        this.verticalGridColor = verticalGridColor;
+        this.gridTextColor = gridTextColor;
+        this.summaryBoarderColor = summaryBoarderColor;
     }
     int frameColor;
     int viewBackgroundColor;
+    int summaryBoarderColor;
     int separatorColor;
     int backgroundColor;
     int toolbarColor;
     int statusbarColor;
     int blurColor;
     int textColor;
+    int horizontalGridColor;
+    int verticalGridColor;
+    int gridTextColor;
     public int getSeparatorColor() {
         return separatorColor;
     }
@@ -64,7 +76,11 @@ class Mode {
             Color.parseColor("#1D2733"),
             Color.parseColor("#C117222D"),
             Color.parseColor("#3462ACDF"),
-            Color.parseColor("#FDFDFE")
+            Color.parseColor("#FDFDFE"),
+            Color.parseColor("#161F2B"),
+            Color.parseColor("#131C26"),
+            Color.parseColor("#506372"),
+            Color.parseColor("#506372")
             );
 
     public static Mode DAY_MODE = new Mode(
@@ -75,7 +91,11 @@ class Mode {
             Color.parseColor("#FDFDFE"),
             Color.parseColor("#BAF0F4F6"),
             Color.parseColor("#324B80B4"),
-            Color.parseColor("#222222")
+            Color.parseColor("#222222"),
+            Color.parseColor("#F0F0F1"),
+            Color.parseColor("#E4EAEE"),
+            Color.parseColor("#95A109"),
+            Color.parseColor("#E3E3E3")
             );
 
 }

@@ -1,8 +1,7 @@
 package com.example.telegramcharts;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
+import android.app.Activity;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,7 +17,7 @@ import org.json.JSONArray;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     List<Chart> chartList;
     MenuItem checkedMenuItem;
     MenuItem modeMenuItem;
@@ -93,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateToolbar(){
-        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(mode.toolbarColor));
+        getActionBar().setBackgroundDrawable(new ColorDrawable(mode.toolbarColor));
     }
     private void updateStatusbar(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

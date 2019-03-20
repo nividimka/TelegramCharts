@@ -5,11 +5,11 @@
     android:orientation="vertical">
     <com.example.telegramcharts.IncreasedChartView
         android:layout_width="match_parent"
+        android:layout_margin="20dp"
         android:id="@+id/increased_chart_view"
         android:layout_height="350dp"/>
     <com.example.telegramcharts.FullChartView
         android:layout_width="match_parent"
-        android:layout_marginTop="10dp"
         android:id="@+id/full_chart_view"
         android:layout_height="50dp" />
     <LinearLayout

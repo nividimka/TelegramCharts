@@ -17,7 +17,6 @@ import android.widget.RelativeLayout;
 import com.example.telegramcharts.data.Chart;
 import com.example.telegramcharts.data.Line;
 
-import androidx.core.widget.CompoundButtonCompat;
 
 public class ChartView extends LinearLayout {
     Chart chart;
@@ -31,12 +30,12 @@ public class ChartView extends LinearLayout {
         init();
     }
 
-    public ChartView(Context context, @androidx.annotation.Nullable AttributeSet attrs) {
+    public ChartView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public ChartView(Context context, @androidx.annotation.Nullable AttributeSet attrs, int defStyleAttr) {
+    public ChartView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
@@ -47,6 +46,7 @@ public class ChartView extends LinearLayout {
         fullChartView = findViewById(R.id.full_chart_view);
         increasedChartView = findViewById(R.id.increased_chart_view);
         fullChartView.setOnRangeChangeListener(increasedChartView);
+        fullChartView.setOnMinMaxAnimateListener(increasedChartView);
         mode = Mode.DAY_MODE;
         updateBackgroundColor();
         initCheckboxes();
@@ -101,7 +101,7 @@ public class ChartView extends LinearLayout {
                 LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 params.setMargins(30,20,20,20);
                 checkbox.setLayoutParams(params);
-                CompoundButtonCompat.setButtonTintList(checkbox, ColorStateList.valueOf(line.getColor()));
+                checkbox.setButtonTintList(ColorStateList.valueOf(line.getColor()));
                 checkboxesView.addView(checkbox);
                 View separator = new View(getContext());
                 separator.setBackgroundColor(mode.separatorColor);
