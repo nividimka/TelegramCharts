@@ -1,9 +1,8 @@
-package com.example.telegramcharts;
+package com.example.chartview;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -11,8 +10,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.example.telegramcharts.data.Chart;
-import com.example.telegramcharts.data.Line;
+import com.example.chartview.data.Chart;
+import com.example.chartview.data.Line;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,7 @@ public class FullChartView extends View {
     float frameWidth = 10;
     private GestureDetector gestureDetector;
     private OnRangeChangeListener onRangeChangeListener;
-    private OnMinMaxAnimateListener onMinMaxAnimateListener;
+    private OnMinMaxChangeListener onMinMaxChangeListener;
     int currentMax;
     int currentMin;
 
@@ -56,6 +55,15 @@ public class FullChartView extends View {
         blurPaint.setColor(mode.blurColor);
         framePaint = new Paint();
         framePaint.setColor(mode.frameColor);
+        addOnLayoutChangeListener(new OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if(lines!=null) {
+                    updateIncreasedView();
+                    onMinMaxChangeListener.changeMinMax();
+                }
+            }
+        });
     }
 
     @Override
@@ -111,13 +119,24 @@ public class FullChartView extends View {
                 }
                 if (event.getX() >= increasedRight-30 && event.getX() <= increasedRight+30){
                     increaseRightClicked = true;
+                    if (onRangeChangeListener != null) {
+                        onRangeChangeListener.setLeftOrRightClicked(true);
+                    }
                 }
                 if (event.getX() >= increasedLeft-30 && event.getX() <= increasedLeft+30){
                     increaseLeftClicked = true;
+                    if (onRangeChangeListener != null) {
+                        onRangeChangeListener.setLeftOrRightClicked(true);
+                    }
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                onMinMaxAnimateListener.animateMinMax();
+                if (onRangeChangeListener != null) {
+                    if(increaseRightClicked || increaseLeftClicked) {
+                        onRangeChangeListener.setLeftOrRightClicked(false);
+                    }
+                }
+                onMinMaxChangeListener.animateMinMax();
                 increaseCenterClicked = false;
                 increaseRightClicked = false;
                 increaseLeftClicked = false;
@@ -143,7 +162,8 @@ public class FullChartView extends View {
         currentMax = getMaxY(chart.getYLines());
         currentMin = getMinY(chart.getYLines());
         updateIncreasedView();
-        onMinMaxAnimateListener.animateMinMax();
+        if(onMinMaxChangeListener!=null)
+            onMinMaxChangeListener.changeMinMax();
         invalidate();
     }
 
@@ -255,6 +275,7 @@ public class FullChartView extends View {
         }
     };
 
+
     private void updateIncreasedView() {
         int pointCount = lines.get(0).getColumns().length;
         int leftIndex = getNearestLeftIndexPoint(getWidth(), increasedLeft, pointCount);
@@ -274,12 +295,12 @@ public class FullChartView extends View {
         this.onRangeChangeListener = onRangeChangeListener;
     }
 
-    public OnMinMaxAnimateListener getOnMinMaxAnimateListener() {
-        return onMinMaxAnimateListener;
+    public OnMinMaxChangeListener getOnMinMaxChangeListener() {
+        return onMinMaxChangeListener;
     }
 
-    public void setOnMinMaxAnimateListener(OnMinMaxAnimateListener onMinMaxAnimateListener) {
-        this.onMinMaxAnimateListener = onMinMaxAnimateListener;
+    public void setOnMinMaxChangeListener(OnMinMaxChangeListener onMinMaxChangeListener) {
+        this.onMinMaxChangeListener = onMinMaxChangeListener;
     }
 
     ValueAnimator animator;
@@ -313,10 +334,13 @@ public class FullChartView extends View {
 
     interface OnRangeChangeListener {
         void onRangeChange(int leftIndex, int rightIndex, float percentToLeftIndex, float percentToRightIndex);
+
+        void setLeftOrRightClicked(boolean state);
     }
 
-    interface OnMinMaxAnimateListener {
+    interface OnMinMaxChangeListener {
         void animateMinMax();
+        void changeMinMax();
     }
 
     private int getNearestLeftIndexPoint(int width, float leftFrame, int count) {

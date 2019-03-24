@@ -1,13 +1,11 @@
-package com.example.telegramcharts.data;
-
-import android.util.Log;
+package com.example.chartview.data;
 
 public class LeftRightDataHolder {
     int leftIndex;
     int rightIndex;
     float percentToLeftIndex;
     float percentToRightIndex;
-    int width;
+    private int width;
     int leftPadding;
     int rightPadding;
 
@@ -65,7 +63,12 @@ public class LeftRightDataHolder {
 
     public float getWidthBetweenPoints(){
         float lengthInPoints = rightIndex-leftIndex-percentToRightIndex-percentToLeftIndex;
-        return width / lengthInPoints;
+        return (width -leftPadding-rightPadding)/ lengthInPoints;
+    }
+
+    public float getWidthInPoints(){
+        float lengthInPoints = rightIndex-leftIndex-percentToRightIndex-percentToLeftIndex;
+        return lengthInPoints;
     }
 
     public int getLeftPadding() {

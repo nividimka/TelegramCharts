@@ -10,8 +10,10 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.example.telegramcharts.data.Chart;
-import com.example.telegramcharts.utils.JSONUtils;
+import com.example.chartview.ChartView;
+import com.example.chartview.Mode;
+import com.example.chartview.data.Chart;
+import com.example.chartview.utils.JSONUtils;
 
 import org.json.JSONArray;
 
@@ -88,18 +90,18 @@ public class MainActivity extends Activity {
     }
 
     private void updateBackgroundColor() {
-        getWindow().getDecorView().setBackgroundColor(mode.backgroundColor);
+        getWindow().getDecorView().setBackgroundColor(mode.getBackgroundColor());
     }
 
     private void updateToolbar(){
-        getActionBar().setBackgroundDrawable(new ColorDrawable(mode.toolbarColor));
+        getActionBar().setBackgroundDrawable(new ColorDrawable(mode.getToolbarColor()));
     }
     private void updateStatusbar(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = getWindow();
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(mode.statusbarColor);
+            window.setStatusBarColor(mode.getStatusbarColor());
         }
     }
 

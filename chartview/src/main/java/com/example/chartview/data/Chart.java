@@ -1,4 +1,4 @@
-package com.example.telegramcharts.data;
+package com.example.chartview.data;
 
 import java.util.ArrayList;
 import java.util.List;

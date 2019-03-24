@@ -1,6 +1,4 @@
-package com.example.telegramcharts.data;
-
-import android.graphics.Color;
+package com.example.chartview.data;
 
 public class Line {
     public static final String ID = "line";

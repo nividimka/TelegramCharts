@@ -1,11 +1,11 @@
-package com.example.telegramcharts.utils;
+package com.example.chartview.utils;
 
 import android.content.Context;
 import android.graphics.Color;
 
-import com.example.telegramcharts.data.Chart;
-import com.example.telegramcharts.data.Line;
-import com.example.telegramcharts.data.XLine;
+import com.example.chartview.data.Chart;
+import com.example.chartview.data.Line;
+import com.example.chartview.data.XLine;
 
 import org.json.JSONArray;
 import org.json.JSONException;

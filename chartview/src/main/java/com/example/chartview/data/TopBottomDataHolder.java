@@ -1,4 +1,4 @@
-package com.example.telegramcharts.data;
+package com.example.chartview.data;
 
 public class TopBottomDataHolder {
     private int currentMinY;
@@ -26,6 +26,9 @@ public class TopBottomDataHolder {
     public int getHeight() {
         return height;
     }
+    public int getChartHeight(){
+        return height-topPadding-bottomPadding;
+    }
 
     public void setHeight(int height) {
         this.height = height;
@@ -48,6 +51,6 @@ public class TopBottomDataHolder {
     }
 
     public int getScaledY(int y){
-        return (int) (((y - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * height+topPadding);
+        return (int) (((y - currentMaxY)*1.0/ (currentMinY - currentMaxY)) * getChartHeight()+topPadding);
     }
 }

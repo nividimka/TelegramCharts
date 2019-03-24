@@ -1,15 +1,15 @@
-package com.example.telegramcharts;
+package com.example.chartview;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.TextPaint;
-import android.util.Log;
 
-import com.example.telegramcharts.data.ChartHolder;
-import com.example.telegramcharts.data.LeftRightDataHolder;
-import com.example.telegramcharts.data.Line;
-import com.example.telegramcharts.data.TopBottomDataHolder;
+import com.example.chartview.data.ChartHolder;
+import com.example.chartview.data.LeftRightDataHolder;
+import com.example.chartview.data.Line;
+import com.example.chartview.data.TopBottomDataHolder;
+import com.example.chartview.utils.IntUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,16 +48,16 @@ public class ChartGridViewDelegate {
                 int height = getHeight() - i * horizontalRange;
                 int currentY = calculateYFromHeight(height,getHeight());
                 gridTextPaint.setAlpha(255);
-                canvas.drawLine(0, height, getWidth(), height, horizontalGridPaint);
-                canvas.drawText(String.valueOf(currentY), 0, height - 10, gridTextPaint);
+                canvas.drawLine(0, height+minMaxDataHolder.getBottomPadding(), getWidth(), height + minMaxDataHolder.getTopPadding(), horizontalGridPaint);
+                canvas.drawText(IntUtils.formatInt(currentY), 0, height+minMaxDataHolder.getBottomPadding() - 10, gridTextPaint);
             }
         }else{
             for (int i = 0; i < 6; i++) {
                 int height = calculateHeightFromY(oldValues.get(i), getHeight());
                 gridTextPaint.setAlpha((int) (255-(animationPercent)*255));
                 horizontalGridPaint.setAlpha((int) (255-(animationPercent)*255));
-                canvas.drawLine(0, height, getWidth(), height, horizontalGridPaint);
-                canvas.drawText(String.valueOf(oldValues.get(i)), 0, height - 10, gridTextPaint);
+                canvas.drawLine(0, height+minMaxDataHolder.getBottomPadding(), getWidth(), height + minMaxDataHolder.getBottomPadding(), horizontalGridPaint);
+                canvas.drawText(IntUtils.formatInt(oldValues.get(i)), 0, height - 10 + minMaxDataHolder.getBottomPadding(), gridTextPaint);
             }
             for (int i = 0; i < 6; i++) {
                 int nextHeight = getHeight() - i * horizontalRange;
@@ -67,15 +67,13 @@ public class ChartGridViewDelegate {
                     gridTextPaint.setAlpha((int) ((animationPercent) * 255));
                     horizontalGridPaint.setAlpha((int) ((animationPercent) * 255));
                 }else{
-                    gridTextPaint.setAlpha((int) (255));
-                    horizontalGridPaint.setAlpha((int) (255));
+                    gridTextPaint.setAlpha(255);
+                    horizontalGridPaint.setAlpha(255);
                 }
-//                Rect background = getTextBackgroundSize(0, height-10, String.valueOf(nextYFromHeight), gridTextPaint);
-//                canvas.drawRect(background, backgroundPaint);
-                canvas.drawLine(0, height, getWidth(), height, horizontalGridPaint);
-                canvas.drawText(String.valueOf(nextYFromHeight), 0, height - 10, gridTextPaint);
-
-//                canvas.drawText(String.valueOf(currentY), 0, height - 10, gridTextPaint);
+                Rect background = getTextBackgroundSize(0, height-10 + minMaxDataHolder.getBottomPadding(), String.valueOf(nextYFromHeight), gridTextPaint);
+                canvas.drawRect(background, backgroundPaint);
+                canvas.drawLine(0, height+minMaxDataHolder.getBottomPadding(), getWidth(), height + minMaxDataHolder.getBottomPadding(), horizontalGridPaint);
+                canvas.drawText(IntUtils.formatInt(nextYFromHeight), 0, height - 10 + minMaxDataHolder.getBottomPadding(), gridTextPaint);
             }
         }
     }
@@ -85,7 +83,7 @@ public class ChartGridViewDelegate {
         return new Rect((int) (x), (int) (y + fontMetrics.top), (int) (x + 2*halfTextLength), (int) (y + fontMetrics.bottom));
     }
     public int getHeight(){
-        return Math.abs(rect.top - rect.bottom);
+        return Math.abs(rect.top - rect.bottom)-minMaxDataHolder.getTopPadding() - minMaxDataHolder.getBottomPadding();
     }
     public int getWidth(){
         return Math.abs(rect.left - rect.right);
@@ -136,8 +134,9 @@ public class ChartGridViewDelegate {
     public void setMode(Mode mode) {
         horizontalGridPaint.setColor(mode.horizontalGridColor);
         gridTextPaint.setColor(mode.gridTextColor);
+        backgroundPaint.setColor(mode.viewBackgroundColor);
     }
-    boolean startAnimation = false;
+    private boolean startAnimation = false;
 
     public void animate(float value) {
         animationPercent = value;

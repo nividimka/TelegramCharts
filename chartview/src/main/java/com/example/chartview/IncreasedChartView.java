@@ -1,9 +1,10 @@
-package com.example.telegramcharts;
+package com.example.chartview;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -11,18 +12,18 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
-import com.example.telegramcharts.data.Chart;
-import com.example.telegramcharts.data.ChartHolder;
-import com.example.telegramcharts.data.LeftRightDataHolder;
-import com.example.telegramcharts.data.Line;
-import com.example.telegramcharts.data.TopBottomDataHolder;
-import com.example.telegramcharts.utils.ViewUtils;
+import com.example.chartview.data.Chart;
+import com.example.chartview.data.ChartHolder;
+import com.example.chartview.data.LeftRightDataHolder;
+import com.example.chartview.data.Line;
+import com.example.chartview.data.TopBottomDataHolder;
+import com.example.chartview.utils.ViewUtils;
 
 
 import java.util.List;
 
 
-public class IncreasedChartView extends View implements FullChartView.OnRangeChangeListener, FullChartView.OnMinMaxAnimateListener {
+public class IncreasedChartView extends View implements FullChartView.OnRangeChangeListener, FullChartView.OnMinMaxChangeListener {
     Paint verticalGridPaint;
     Mode mode;
     GestureDetector gestureDetector;
@@ -34,6 +35,7 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     ChartSelectedPointViewDelegate chartSelectedPointViewDelegate;
     TopBottomDataHolder topBottomDataHolder;
     LeftRightDataHolder leftRightDataHolder;
+    ChartXLabelsViewDelegate chartXLabelsViewDelegate;
     ChartHolder chartHolder;
 
     public IncreasedChartView(Context context) {
@@ -62,10 +64,14 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
                 ViewUtils.toPx(getContext(),60),
                 ViewUtils.toPx(getContext(),12),
                 topBottomDataHolder);
-        chartSelectedPointViewDelegate = new ChartSelectedPointViewDelegate(topBottomDataHolder,
+        chartSelectedPointViewDelegate = new ChartSelectedPointViewDelegate(getContext(),topBottomDataHolder,
                 leftRightDataHolder,
                 chartHolder,
-                mode);
+                mode,
+                ViewUtils.toPx(getContext(),12));
+        chartXLabelsViewDelegate = new ChartXLabelsViewDelegate(this,chartHolder, mode, topBottomDataHolder, leftRightDataHolder,
+                ViewUtils.toPx(getContext(), 12),
+                ViewUtils.toPx(getContext(),10));
         leftPadding = ViewUtils.toPx(getContext(), 20);
         rightPadding = ViewUtils.toPx(getContext(), 20);
         topPadding = ViewUtils.toPx(getContext(), 20);
@@ -80,11 +86,22 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
         addOnLayoutChangeListener(new OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                chartXLabelsViewDelegate.setRect(new Rect(0, getHeight()-chartXLabelsViewDelegate.getLabelHeight(), getWidth(), getHeight()));
+                leftPadding = (int) (chartXLabelsViewDelegate.getLabelWidth()/2);
+                rightPadding = (int) (chartXLabelsViewDelegate.getLabelWidth() / 2);
+                leftRightDataHolder.setLeftPadding(leftPadding);
+                leftRightDataHolder.setRightPadding(rightPadding);
                 chartGridViewDelegate.setLayoutBoards(left, top, right, bottom);
-                leftRightDataHolder.setWidth(Math.abs(left-right)-leftPadding-rightPadding);
-                topBottomDataHolder.setHeight(Math.abs(top-bottom)-topPadding-bottomPadding);
+                leftRightDataHolder.setWidth(Math.abs(left-right));
+                topBottomDataHolder.setHeight(Math.abs(top-bottom));
+                invalidate();
             }
         });
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
     }
 
     @Override
@@ -93,6 +110,7 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
         if (chartHolder.getChart() != null) {
             float widthBetweenPoints = leftRightDataHolder.getWidthBetweenPoints();
             chartGridViewDelegate.onDraw(canvas);
+            chartXLabelsViewDelegate.onDraw(canvas);
             for (int k = 0; k < chartHolder.getChart().getYLines().size(); k++) {
                 Line line = chartHolder.getChart().getYLines().get(k);
                 if (!line.isHidden()) {
@@ -155,7 +173,11 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     public void onRangeChange(int leftIndex, int rightIndex, float percentToLeftIndex, float percentToRightIndex) {
         Log.e("onRangeChange", "onRangeChange" +leftIndex + " " + rightIndex + " " + percentToLeftIndex + " " + percentToRightIndex);
         assert leftIndex >= 0;
-        assert rightIndex < chartHolder.getChart().getYLines().get(0).getColumns().length;
+        if(rightIndex >= chartHolder.getChart().getYLines().get(0).getColumns().length){
+            rightIndex = chartHolder.getChart().getYLines().get(0).getColumns().length-1;
+            percentToRightIndex = 0;
+            percentToLeftIndex = 0;
+        }
         this.leftRightDataHolder.setLeftIndex(leftIndex);
         this.leftRightDataHolder.setRightIndex(rightIndex);
         this.leftRightDataHolder.setPercentToLeftIndex(percentToLeftIndex);
@@ -163,15 +185,19 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
         invalidate();
     }
 
+
+    @Override
+    public void setLeftOrRightClicked(boolean state) {
+        chartXLabelsViewDelegate.onRangeChanged(state);
+    }
+
     public void setChart(Chart chart) {
-        chartHolder.setChart(chart);
+        chartHolder.setChart(chart,getContext());
     }
     public void initChart(Chart chart) {
         setChart(chart);
         leftRightDataHolder.setLeftIndex(0);
         leftRightDataHolder.setRightIndex(0);
-        leftRightDataHolder.setPercentToRightIndex(0);
-        leftRightDataHolder.setPercentToLeftIndex(0);
         topBottomDataHolder.setCurrentMaxY(getMaxY(chartHolder.getChart().getYLines()));
         topBottomDataHolder.setCurrentMinY(getMinY(chartHolder.getChart().getYLines()));
         invalidate();
@@ -234,6 +260,7 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
         chartGridViewDelegate.setMode(mode);
         chartSelectedPointViewDelegate.setMode(mode);
         verticalGridPaint.setColor(mode.verticalGridColor);
+        chartXLabelsViewDelegate.setMode(mode);
         invalidate();
     }
     ValueAnimator animator;
@@ -295,5 +322,12 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
             topBottomDataHolder.setCurrentMinY(getMinY(chartHolder.getChart().getYLines()));
             invalidate();
         }
+    }
+
+    @Override
+    public void changeMinMax() {
+        topBottomDataHolder.setCurrentMaxY(getMaxY(chartHolder.getChart().getYLines()));
+        topBottomDataHolder.setCurrentMinY(getMinY(chartHolder.getChart().getYLines()));
+        invalidate();
     }
 }

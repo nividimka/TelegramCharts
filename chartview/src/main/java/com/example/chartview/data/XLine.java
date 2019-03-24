@@ -1,6 +1,4 @@
-package com.example.telegramcharts.data;
-
-import android.graphics.Color;
+package com.example.chartview.data;
 
 public class XLine {
     public static final String ID = "x";

@@ -1,8 +1,7 @@
-package com.example.telegramcharts;
+package com.example.chartview;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -10,12 +9,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
-import com.example.telegramcharts.data.Chart;
-import com.example.telegramcharts.data.Line;
+import com.example.chartview.data.Chart;
+import com.example.chartview.data.Line;
 
 
 public class ChartView extends LinearLayout {
@@ -46,12 +43,13 @@ public class ChartView extends LinearLayout {
         fullChartView = findViewById(R.id.full_chart_view);
         increasedChartView = findViewById(R.id.increased_chart_view);
         fullChartView.setOnRangeChangeListener(increasedChartView);
-        fullChartView.setOnMinMaxAnimateListener(increasedChartView);
+        fullChartView.setOnMinMaxChangeListener(increasedChartView);
         mode = Mode.DAY_MODE;
         updateBackgroundColor();
         initCheckboxes();
         initFullChart();
     }
+
     public void updateMode(Mode mode){
         this.mode = mode;
         updateBackgroundColor();

@@ -1,10 +1,10 @@
-package com.example.telegramcharts;
+package com.example.chartview;
 
 import android.graphics.Color;
 
 import java.util.Objects;
 
-class Mode {
+public class Mode {
     public Mode(int separatorColor,
                 int backgroundColor,
                 int toolbarColor,
@@ -16,7 +16,8 @@ class Mode {
                 int horizontalGridColor,
                 int verticalGridColor,
                 int gridTextColor,
-                int summaryBoarderColor) {
+                int summaryBoarderColor,
+                int summaryTextColor) {
         this.separatorColor = separatorColor;
         this.backgroundColor = backgroundColor;
         this.toolbarColor = toolbarColor;
@@ -29,10 +30,12 @@ class Mode {
         this.verticalGridColor = verticalGridColor;
         this.gridTextColor = gridTextColor;
         this.summaryBoarderColor = summaryBoarderColor;
+        this.summaryTextColor = summaryTextColor;
     }
     int frameColor;
     int viewBackgroundColor;
     int summaryBoarderColor;
+    int summaryTextColor;
     int separatorColor;
     int backgroundColor;
     int toolbarColor;
@@ -63,6 +66,98 @@ class Mode {
                 backgroundColor == mode.backgroundColor;
     }
 
+    public int getFrameColor() {
+        return frameColor;
+    }
+
+    public void setFrameColor(int frameColor) {
+        this.frameColor = frameColor;
+    }
+
+    public int getViewBackgroundColor() {
+        return viewBackgroundColor;
+    }
+
+    public void setViewBackgroundColor(int viewBackgroundColor) {
+        this.viewBackgroundColor = viewBackgroundColor;
+    }
+
+    public int getSummaryBoarderColor() {
+        return summaryBoarderColor;
+    }
+
+    public void setSummaryBoarderColor(int summaryBoarderColor) {
+        this.summaryBoarderColor = summaryBoarderColor;
+    }
+
+    public int getSummaryTextColor() {
+        return summaryTextColor;
+    }
+
+    public void setSummaryTextColor(int summaryTextColor) {
+        this.summaryTextColor = summaryTextColor;
+    }
+
+    public void setSeparatorColor(int separatorColor) {
+        this.separatorColor = separatorColor;
+    }
+
+    public void setBackgroundColor(int backgroundColor) {
+        this.backgroundColor = backgroundColor;
+    }
+
+    public void setToolbarColor(int toolbarColor) {
+        this.toolbarColor = toolbarColor;
+    }
+
+    public int getStatusbarColor() {
+        return statusbarColor;
+    }
+
+    public void setStatusbarColor(int statusbarColor) {
+        this.statusbarColor = statusbarColor;
+    }
+
+    public int getBlurColor() {
+        return blurColor;
+    }
+
+    public void setBlurColor(int blurColor) {
+        this.blurColor = blurColor;
+    }
+
+    public int getTextColor() {
+        return textColor;
+    }
+
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
+    }
+
+    public int getHorizontalGridColor() {
+        return horizontalGridColor;
+    }
+
+    public void setHorizontalGridColor(int horizontalGridColor) {
+        this.horizontalGridColor = horizontalGridColor;
+    }
+
+    public int getVerticalGridColor() {
+        return verticalGridColor;
+    }
+
+    public void setVerticalGridColor(int verticalGridColor) {
+        this.verticalGridColor = verticalGridColor;
+    }
+
+    public int getGridTextColor() {
+        return gridTextColor;
+    }
+
+    public void setGridTextColor(int gridTextColor) {
+        this.gridTextColor = gridTextColor;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(separatorColor, backgroundColor);
@@ -80,6 +175,7 @@ class Mode {
             Color.parseColor("#161F2B"),
             Color.parseColor("#131C26"),
             Color.parseColor("#506372"),
+            Color.parseColor("#506372"),
             Color.parseColor("#506372")
             );
 
@@ -95,7 +191,8 @@ class Mode {
             Color.parseColor("#F0F0F1"),
             Color.parseColor("#E4EAEE"),
             Color.parseColor("#95A109"),
-            Color.parseColor("#E3E3E3")
+            Color.parseColor("#E3E3E3"),
+            Color.parseColor("#222222")
             );
 
 }
