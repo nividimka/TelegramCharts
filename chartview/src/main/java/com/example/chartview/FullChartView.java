@@ -4,6 +4,8 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -25,6 +27,8 @@ public class FullChartView extends View {
     Mode mode;
     float increasedLeft = 0;
     float increasedRight = 150;
+    float scaledLeft = 0;
+    float scaledRight = 0;
     float frameHeight = 5;
     float frameWidth = 10;
     private GestureDetector gestureDetector;
@@ -61,6 +65,10 @@ public class FullChartView extends View {
                 if(chart!=null) {
                     updateIncreasedView();
                     onMinMaxChangeListener.changeMinMax();
+                    if(scaledLeft!=0 || scaledRight!=0){
+                        increasedLeft = scaledLeft*getWidth();
+                        increasedRight = scaledRight*getWidth();
+                    }
                 }
             }
         });
@@ -362,4 +370,62 @@ public class FullChartView extends View {
         float length = 1f * width / (count-1);
         return (increasedLeft - 1f * leftIndex * width / (count-1)) / length;
     }
+
+
+    protected Parcelable onSaveInstanceState() {
+        Log.e("day", " saveInstanceState");
+        Parcelable parcelable = super.onSaveInstanceState();
+        return (Parcelable) (new FullChartView.SavedState(parcelable, increasedLeft/getWidth(),increasedRight/getWidth()));
+    }
+
+    protected void onRestoreInstanceState(Parcelable state) {
+        Log.e("day", " restoreInstanceState");
+        FullChartView.SavedState ss = (FullChartView.SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        scaledLeft = ss.scaledLeft;
+        scaledRight = ss.scaledRight;
+    }
+
+
+    public static final class SavedState extends BaseSavedState {
+        float scaledLeft = 0;
+        float scaledRight = 0;
+
+        public static final FullChartView.SavedState.CREATOR CREATOR = new FullChartView.SavedState.CREATOR();
+
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+
+            out.writeFloat(this.scaledLeft);
+            out.writeFloat(this.scaledRight);
+        }
+
+        public SavedState(Parcelable superState, float scaledLeft, float scaledRight) {
+            super(superState);
+            this.scaledLeft = scaledLeft;
+            this.scaledRight = scaledRight;
+        }
+
+        private SavedState(Parcel in) {
+            super(in);
+            this.scaledLeft = in.readFloat();
+            this.scaledRight = in.readFloat();
+        }
+
+
+        public static final class CREATOR implements Creator {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public FullChartView.SavedState[] newArray(int size) {
+                return new FullChartView.SavedState[size];
+            }
+
+            private CREATOR() {
+            }
+
+        }
+    }
+
 }
