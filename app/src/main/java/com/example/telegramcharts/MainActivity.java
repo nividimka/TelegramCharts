@@ -33,7 +33,7 @@ public class MainActivity extends Activity {
         JSONArray chartsJson = JSONUtils.loadJSONArrayFromAsset(getBaseContext());
         chartList = JSONUtils.parseCharts(chartsJson);
         invalidateOptionsMenu();
-        mode = Mode.DAY_MODE;
+        mode = Mode.getModeById(App.getInstance().getPreferenceHelper().getModeId());
         updateModeUi();
     }
 
@@ -42,10 +42,11 @@ public class MainActivity extends Activity {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         modeMenuItem = menu.findItem(R.id.mode);
         updateModeState();
+        int checkedId = App.getInstance().getPreferenceHelper().getChartId();
         for (int i = 0; i < chartList.size(); i++) {
             Chart chart = chartList.get(i);
             MenuItem menuItem = menu.add(0, i, Menu.NONE, chart.getName()).setCheckable(true);
-            if(i==0) {
+            if(i==checkedId) {
                 menuItem.setChecked(true);
                 checkedMenuItem = menuItem;
                 selectChart(chartList.get(checkedMenuItem.getItemId()));
@@ -69,13 +70,15 @@ public class MainActivity extends Activity {
             checkedMenuItem.setChecked(false);
             item.setChecked(true);
             checkedMenuItem = item;
+            App.getInstance().getPreferenceHelper().saveChartId(item.getItemId());
             selectChart(chartList.get(checkedMenuItem.getItemId()));
         }else{
-            if (mode.equals(Mode.DAY_MODE)) {
+            if (mode.getId()==Mode.DAY_MODE.getId()) {
                 mode = Mode.NIGHT_MODE;
             } else {
                 mode = Mode.DAY_MODE;
             }
+            App.getInstance().getPreferenceHelper().saveModeId(mode.getId());
             updateModeState();
             updateModeUi();
         }

@@ -5,7 +5,8 @@ import android.graphics.Color;
 import java.util.Objects;
 
 public class Mode {
-    public Mode(int separatorColor,
+    public Mode(int id,
+                int separatorColor,
                 int backgroundColor,
                 int toolbarColor,
                 int statusbarColor,
@@ -18,6 +19,7 @@ public class Mode {
                 int gridTextColor,
                 int summaryBoarderColor,
                 int summaryTextColor) {
+        this.id = id;
         this.separatorColor = separatorColor;
         this.backgroundColor = backgroundColor;
         this.toolbarColor = toolbarColor;
@@ -33,6 +35,7 @@ public class Mode {
         this.summaryTextColor = summaryTextColor;
     }
     int frameColor;
+    int id;
     int viewBackgroundColor;
     int summaryBoarderColor;
     int summaryTextColor;
@@ -45,6 +48,15 @@ public class Mode {
     int horizontalGridColor;
     int verticalGridColor;
     int gridTextColor;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public int getSeparatorColor() {
         return separatorColor;
     }
@@ -163,7 +175,18 @@ public class Mode {
         return Objects.hash(separatorColor, backgroundColor);
     }
 
+    public static Mode getModeById(int id){
+        switch (id){
+            case 1:
+                return NIGHT_MODE;
+            case 2:
+                return DAY_MODE;
+        }
+        return DAY_MODE;
+    }
+
     public static Mode NIGHT_MODE = new Mode(
+            1,
             Color.parseColor("#0B131E"),
             Color.parseColor("#151E27"),
             Color.parseColor("#212D3B"),
@@ -180,6 +203,7 @@ public class Mode {
             );
 
     public static Mode DAY_MODE = new Mode(
+            0,
             Color.parseColor("#DFDFDF"),
             Color.parseColor("#EFEFEF"),
             Color.parseColor("#517DA1"),
