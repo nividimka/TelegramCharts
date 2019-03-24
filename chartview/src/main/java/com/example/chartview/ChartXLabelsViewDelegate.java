@@ -74,7 +74,7 @@ public class ChartXLabelsViewDelegate {
 
     public void drawLabels(Canvas canvas){
         float widthBetweenPoints = leftRightDataHolder.getWidthBetweenPoints();
-        float fullLength = widthBetweenPoints * (chartHolder.getChart().getYLines().get(0).getColumns().length-1);
+        float fullLength = widthBetweenPoints * (chartHolder.getChart().getXLine().getColumns().length-1);
         drawLabels(canvas,0,fullLength);
     }
 
@@ -154,12 +154,14 @@ public class ChartXLabelsViewDelegate {
     }
 
     public int getSelectedPointIndex(float x){
-        int selectedPoint = (int)(x / leftRightDataHolder.getWidthBetweenPoints()+leftRightDataHolder.getLeftIndex() + leftRightDataHolder.getPercentToLeftIndex());
+        //0.001 to add some kind of right offset because of .5 value not sure which point should select, with this kind of offset
+        // it looks right but in a lot of points this may cause errors
+        int selectedPoint = (int) Math.round(x*1. / leftRightDataHolder.getWidthBetweenPoints()+leftRightDataHolder.getLeftIndex() + leftRightDataHolder.getPercentToLeftIndex()+0.001);
         if(selectedPoint<0){
             selectedPoint = 0;
         }
-        if (selectedPoint >= chartHolder.getChart().getYLines().get(0).getColumns().length) {
-            selectedPoint = chartHolder.getChart().getYLines().get(0).getColumns().length-1;
+        if (selectedPoint >= chartHolder.getChart().getXLine().getColumns().length) {
+            selectedPoint = chartHolder.getChart().getXLine().getColumns().length-1;
         }
         return selectedPoint;
     }

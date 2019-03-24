@@ -128,6 +128,8 @@ public class ChartSelectedPointViewDelegate implements ChartHolder.OnUpdateListe
 
     public void setMode(Mode mode) {
         backgroundPaint.setColor(mode.viewBackgroundColor);
+        summaryBoardPaint.setColor(mode.getSummaryBoarderColor());
+        dateTextPaint.setColor(mode.getSummaryTextColor());
     }
 
 
@@ -136,8 +138,8 @@ public class ChartSelectedPointViewDelegate implements ChartHolder.OnUpdateListe
         if(selectedPoint<0){
             selectedPoint = 0;
         }
-        if (selectedPoint >= chartHolder.getChart().getYLines().get(0).getColumns().length) {
-            selectedPoint = chartHolder.getChart().getYLines().get(0).getColumns().length-1;
+        if (selectedPoint >= chartHolder.getChart().getXLine().getColumns().length) {
+            selectedPoint = chartHolder.getChart().getXLine().getColumns().length-1;
         }
         return selectedPoint;
     }

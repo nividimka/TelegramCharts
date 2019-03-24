@@ -173,8 +173,8 @@ public class IncreasedChartView extends View implements FullChartView.OnRangeCha
     public void onRangeChange(int leftIndex, int rightIndex, float percentToLeftIndex, float percentToRightIndex) {
         Log.e("onRangeChange", "onRangeChange" +leftIndex + " " + rightIndex + " " + percentToLeftIndex + " " + percentToRightIndex);
         assert leftIndex >= 0;
-        if(rightIndex >= chartHolder.getChart().getYLines().get(0).getColumns().length){
-            rightIndex = chartHolder.getChart().getYLines().get(0).getColumns().length-1;
+        if(rightIndex >= chartHolder.getChart().getXLine().getColumns().length){
+            rightIndex = chartHolder.getChart().getXLine().getColumns().length-1;
             percentToRightIndex = 0;
             percentToLeftIndex = 0;
         }

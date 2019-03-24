@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/chart"
+        android:orientation="vertical"
+        android:layout_width="500dp"
+        android:layout_height="match_parent">
+
+        <com.example.chartview.IncreasedChartView
+            android:id="@+id/increased_chart_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_margin="20dp" />
+
+        <com.example.chartview.FullChartView
+            android:id="@+id/full_chart_view"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/checkboxes_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:layout_toRightOf="@+id/chart"
+        android:orientation="vertical" />
+</RelativeLayout>

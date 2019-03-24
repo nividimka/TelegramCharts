@@ -35,10 +35,5 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    testImplementation 'junit:junit:4.12'
-    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.9'
-    debugCompile "com.github.brianPlummer:tinydancer:0.1.2"
-    releaseCompile "com.github.brianPlummer:tinydancer-noop:0.1.2"
-    testCompile "com.github.brianPlummer:tinydancer-noop:0.1.2"
     compile project(path: ':chartview')
 }

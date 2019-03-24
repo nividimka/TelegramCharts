@@ -18,7 +18,7 @@ import java.util.List;
 
 
 public class FullChartView extends View {
-    List<Line> lines;
+    Chart chart;
     List<Paint> paints;
     Paint blurPaint;
     Paint framePaint;
@@ -58,7 +58,7 @@ public class FullChartView extends View {
         addOnLayoutChangeListener(new OnLayoutChangeListener() {
             @Override
             public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                if(lines!=null) {
+                if(chart!=null) {
                     updateIncreasedView();
                     onMinMaxChangeListener.changeMinMax();
                 }
@@ -69,13 +69,13 @@ public class FullChartView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (lines != null) {
+        if (chart != null) {
             int width = getWidth();
             int height = getHeight();
             int maxY = currentMax;
             int minY = currentMin;
-            for (int k = 0; k < lines.size(); k++) {
-                Line line = lines.get(k);
+            for (int k = 0; k < chart.getYLines().size(); k++) {
+                Line line = chart.getYLines().get(k);
                 if (!line.isHidden()) {
                     int count = line.getColumns().length;
                     for (int i = 0; i < count - 1; i++) {
@@ -147,9 +147,9 @@ public class FullChartView extends View {
     }
 
     public void setChart(Chart chart){
-        this.lines = chart.getYLines();
+        this.chart = chart;
         paints = new ArrayList<>();
-        for (Line line : lines) {
+        for (Line line : chart.getYLines()) {
             Paint paint = new Paint();
             paint.setColor(line.getColor());
             paint.setStrokeWidth(4);
@@ -277,7 +277,7 @@ public class FullChartView extends View {
 
 
     private void updateIncreasedView() {
-        int pointCount = lines.get(0).getColumns().length;
+        int pointCount = chart.getXLine().getColumns().length;
         int leftIndex = getNearestLeftIndexPoint(getWidth(), increasedLeft, pointCount);
         int rightIndex = getNearestRightIndexPoint(getWidth(), increasedRight, pointCount);
         float percentToRightIndex = percentToRightIndex(rightIndex, getWidth(), pointCount);
